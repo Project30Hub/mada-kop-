@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MadaKop – Loyalty Rewards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@400;500;600;700&family=Space+Mono:wght@700&display=swap" rel="stylesheet">
+<style>
+:root{--lime:#bfff3c;--lime-d:#8fcc00;--pink:#e91e8c;--pink-d:#c0166f;--dark:#0d0d0d;--card:#161616;--card2:#1c1c1c;--white:#f5f5f0;--grey:rgba(245,245,240,0.52);--orange:#ff7a2a;--purple:#a855f7;--border:rgba(191,255,60,0.12);--pborder:rgba(233,30,140,0.2)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--dark);color:var(--white);font-family:'DM Sans',sans-serif;overflow-x:hidden}
+a{text-decoration:none;color:inherit}ul{list-style:none}
+.pk{color:var(--pink)}
+
+/* SMOKE */
+.smoke-wrap{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.puff{position:absolute;border-radius:50%;background:radial-gradient(circle,rgba(191,255,60,.045) 0%,transparent 70%);animation:floatUp linear infinite;bottom:-200px}
+@keyframes floatUp{0%{transform:translateY(0) scale(1);opacity:0}10%{opacity:1}90%{opacity:.25}100%{transform:translateY(-110vh) scale(2.5);opacity:0}}
+
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:900;display:flex;align-items:center;justify-content:space-between;padding:0 40px;height:68px;background:rgba(13,13,13,.92);border-bottom:1px solid var(--border);backdrop-filter:blur(16px)}
+.nav-logo{font-family:'Bebas Neue';font-size:1.85rem;letter-spacing:3px;color:var(--lime)}
+.nav-logo span{color:var(--pink)}
+.nav-links{display:flex;gap:22px;align-items:center}
+.nav-links a{color:var(--grey);font-size:.66rem;letter-spacing:2px;text-transform:uppercase;font-weight:600;transition:color .2s}
+.nav-links a:hover{color:var(--white)}
+.nav-cta{background:var(--pink)!important;color:#fff!important;padding:8px 18px;border-radius:3px}
+.nav-cta:hover{background:var(--pink-d)!important}
+.nav-burger{display:none;background:none;border:none;color:var(--white);font-size:1.5rem;cursor:pointer}
+
+/* MOBILE MENU */
+.mobile-menu{position:fixed;inset:0;z-index:850;background:var(--dark);padding:90px 36px 40px;flex-direction:column;display:none}
+.mobile-menu.open{display:flex}
+.mobile-menu ul{display:flex;flex-direction:column;gap:4px}
+.mobile-menu a{display:block;font-family:'Bebas Neue';font-size:2.2rem;letter-spacing:3px;padding:12px 0;border-bottom:1px solid var(--border);transition:color .2s}
+.mobile-menu a:hover{color:var(--lime)}
+.mobile-close{position:absolute;top:22px;right:28px;background:none;border:none;color:var(--white);font-size:2rem;cursor:pointer}
+
+/* CHECKER */
+.checker{height:16px;background-image:repeating-linear-gradient(90deg,var(--pink) 0,var(--pink) 16px,var(--lime) 16px,var(--lime) 32px);opacity:.8}
+.checker.alt{background-image:repeating-linear-gradient(90deg,var(--lime) 0,var(--lime) 16px,var(--pink) 16px,var(--pink) 32px)}
+
+/* BUTTONS */
+.btn-primary{background:var(--lime);color:var(--dark);font-family:'Bebas Neue';font-size:1rem;letter-spacing:3px;padding:14px 32px;border:none;cursor:pointer;border-radius:3px;transition:all .2s;display:inline-block}
+.btn-primary:hover{background:#d4ff5c;transform:translateY(-2px);box-shadow:0 8px 26px rgba(191,255,60,.22)}
+.btn-ghost{background:transparent;color:var(--grey);font-size:.7rem;letter-spacing:2px;text-transform:uppercase;font-weight:600;transition:color .2s;display:inline-block;border:none;cursor:pointer;font-family:'DM Sans';padding:0}
+.btn-ghost:hover{color:var(--white)}
+
+/* LAYOUT */
+.container{max-width:1100px;margin:0 auto;padding:0 40px}
+.section-label{display:block;font-size:.6rem;letter-spacing:4px;text-transform:uppercase;font-weight:700;color:var(--lime);margin-bottom:12px}
+.section-title{font-family:'Bebas Neue';font-size:clamp(2.2rem,5vw,3.4rem);letter-spacing:3px;line-height:1;margin-bottom:28px}
+
+/* PAGE WRAP */
+.rewards-wrap{padding:110px 0 80px;background:radial-gradient(ellipse 80% 50% at 50% 0%,rgba(233,30,140,.07) 0%,transparent 55%)}
+
+/* HERO */
+.rewards-hero{text-align:center;margin-bottom:72px;padding:0 40px}
+.rewards-hero .section-title{margin:12px 0 16px}
+.rewards-hero p{font-size:.95rem;color:var(--grey);max-width:540px;margin:0 auto 32px;line-height:1.8}
+
+/* POINTS BANNER */
+.points-banner{max-width:860px;margin:0 auto 72px;background:linear-gradient(135deg,rgba(191,255,60,.07),rgba(233,30,140,.05),rgba(168,85,247,.04));border:1px solid rgba(191,255,60,.2);border-radius:12px;padding:48px;display:grid;grid-template-columns:1fr 1fr 1fr;position:relative;overflow:hidden}
+.points-banner::before{content:'';position:absolute;inset:0;background:radial-gradient(ellipse 60% 80% at 50% 50%,rgba(191,255,60,.04),transparent)}
+.pts-col{text-align:center;padding:16px;position:relative;z-index:1}
+.pts-col+.pts-col{border-left:1px solid rgba(255,255,255,.06)}
+.pts-val{font-family:'Bebas Neue';font-size:4rem;letter-spacing:3px;line-height:1}
+.pts-val.lime{color:var(--lime)}.pts-val.pink{color:var(--pink)}.pts-val.purple{color:var(--purple)}
+.pts-label{font-size:.63rem;letter-spacing:3px;text-transform:uppercase;color:rgba(245,245,240,.4);margin-top:6px;font-weight:700}
+.pts-sub{font-size:.72rem;color:rgba(245,245,240,.3);margin-top:4px}
+
+/* TIERS */
+.tiers-section{margin-bottom:80px}
+.tiers-section>p{color:var(--grey);margin-bottom:36px;font-size:.9rem}
+.tiers-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+.tier-card{border-radius:8px;padding:34px 26px;position:relative;overflow:hidden;transition:transform .2s}
+.tier-card:hover{transform:translateY(-6px)}
+.tier-card.bronze{background:linear-gradient(135deg,#1a1208,#111);border:1px solid rgba(180,100,20,.3)}
+.tier-card.silver{background:linear-gradient(135deg,#181820,#111);border:1px solid rgba(150,150,180,.3)}
+.tier-card.gold-t{background:linear-gradient(135deg,#1c2a08,#111);border:2px solid rgba(191,255,60,.4);box-shadow:0 0 40px rgba(191,255,60,.07)}
+.tier-card.vip-t{background:linear-gradient(135deg,#1a0a1a,#111);border:2px solid rgba(233,30,140,.4);box-shadow:0 0 40px rgba(233,30,140,.07);grid-column:1/-1}
+.tier-crown{font-size:2.4rem;margin-bottom:14px}
+.tier-card-name{font-family:'Bebas Neue';font-size:2rem;letter-spacing:3px;margin-bottom:4px}
+.tier-card.bronze .tier-card-name{color:#cd7f32}
+.tier-card.silver .tier-card-name{color:#aab0c0}
+.tier-card.gold-t .tier-card-name{color:var(--lime)}
+.tier-card.vip-t .tier-card-name{color:var(--pink)}
+.tier-range{font-size:.68rem;letter-spacing:2px;text-transform:uppercase;color:rgba(245,245,240,.35);margin-bottom:22px}
+.tier-perks{display:flex;flex-direction:column;gap:10px}
+.tier-perks li{font-size:.8rem;color:var(--grey);display:flex;gap:8px;align-items:flex-start;line-height:1.5}
+.tier-perks li::before{content:'✓';color:var(--lime);font-weight:700;flex-shrink:0}
+.tier-card.vip-t .tier-perks li::before{color:var(--pink)}
+.popular-badge{position:absolute;top:14px;right:14px;background:var(--lime);color:var(--dark);font-size:.54rem;letter-spacing:2px;text-transform:uppercase;font-weight:700;padding:4px 10px;border-radius:2px}
+.vip-inner{display:flex;gap:28px;align-items:flex-start;flex-wrap:wrap}
+.vip-left{flex:0 0 auto}
+.vip-perks-grid{flex:1;display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+/* HOW IT WORKS */
+.how-section{margin-bottom:80px}
+.how-section>p{color:var(--grey);margin-bottom:40px;font-size:.9rem}
+.how-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:18px}
+.how-step{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:26px 20px;text-align:center;transition:border-color .2s,transform .2s;position:relative}
+.how-step:hover{border-color:rgba(191,255,60,.3);transform:translateY(-4px)}
+.how-step:not(:last-child)::after{content:'→';position:absolute;right:-14px;top:50%;transform:translateY(-50%);font-size:1.1rem;color:rgba(191,255,60,.4);z-index:2}
+.how-num{font-family:'Bebas Neue';font-size:2.8rem;color:rgba(191,255,60,.13);line-height:1;margin-bottom:6px}
+.how-icon{font-size:1.9rem;margin-bottom:10px}
+.how-title{font-family:'Bebas Neue';font-size:1.15rem;letter-spacing:1px;color:var(--lime);margin-bottom:8px}
+.how-desc{font-size:.76rem;color:var(--grey);line-height:1.6}
+
+/* EARN TABLE */
+.earn-table-section{margin-bottom:80px}
+.earn-table-section>p{color:var(--grey);margin-bottom:28px;font-size:.9rem}
+.earn-table{width:100%;border-collapse:collapse}
+.earn-table th{font-size:.62rem;letter-spacing:2.5px;text-transform:uppercase;color:var(--lime);font-weight:700;padding:12px 16px;text-align:left;border-bottom:1px solid rgba(191,255,60,.15)}
+.earn-table td{padding:14px 16px;border-bottom:1px solid rgba(255,255,255,.05);font-size:.82rem;color:var(--grey);vertical-align:middle}
+.earn-table tr:hover td{background:rgba(191,255,60,.03)}
+.earn-pts{font-family:'Bebas Neue';font-size:1.2rem;color:var(--lime);letter-spacing:1px}
+.earn-action{font-size:.58rem;letter-spacing:2px;text-transform:uppercase;color:var(--pink);background:rgba(233,30,140,.1);border:1px solid rgba(233,30,140,.2);padding:3px 10px;border-radius:2px;font-weight:700;white-space:nowrap}
+
+/* REWARDS SHOP */
+.rewards-shop{margin-bottom:72px}
+.rewards-shop>p{color:var(--grey);margin-bottom:36px;font-size:.9rem}
+.rewards-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:18px}
+.reward-item{background:var(--card);border:1px solid var(--border);border-radius:6px;overflow:hidden;transition:transform .2s,border-color .2s}
+.reward-item:hover{transform:translateY(-5px);border-color:rgba(191,255,60,.35)}
+.ri-header{height:136px;display:flex;align-items:center;justify-content:center;font-size:3.8rem;background:linear-gradient(135deg,#1a1a1a,#0d0d0d);position:relative}
+.ri-pts{position:absolute;bottom:10px;right:10px;background:var(--pink);color:#fff;font-family:'Bebas Neue';font-size:.88rem;letter-spacing:1px;padding:3px 10px;border-radius:2px}
+.ri-body{padding:16px 18px}
+.ri-name{font-family:'Bebas Neue';font-size:1.2rem;letter-spacing:1px;margin-bottom:4px}
+.ri-desc{font-size:.74rem;color:rgba(245,245,240,.45);margin-bottom:14px;line-height:1.55}
+.ri-footer{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.ri-cost{font-family:'Bebas Neue';font-size:1.4rem;color:var(--lime);letter-spacing:1px}
+.ri-btn{background:transparent;border:1px solid var(--lime);color:var(--lime);font-size:.6rem;letter-spacing:2px;text-transform:uppercase;font-weight:700;padding:7px 14px;cursor:pointer;transition:all .2s;font-family:'DM Sans';border-radius:2px}
+.ri-btn:hover{background:var(--lime);color:var(--dark)}
+.ri-locked{border-color:rgba(255,255,255,.15)!important;color:rgba(245,245,240,.3)!important;cursor:not-allowed!important}
+.ri-locked:hover{background:transparent!important;color:rgba(245,245,240,.3)!important}
+
+/* CTA */
+.cta-banner{background:linear-gradient(135deg,rgba(191,255,60,.08),rgba(233,30,140,.07));border:1px solid rgba(191,255,60,.2);border-radius:8px;padding:48px;text-align:center}
+.cta-banner h2{font-family:'Bebas Neue';font-size:2.5rem;letter-spacing:2px;margin-bottom:12px}
+.cta-banner p{color:var(--grey);margin-bottom:28px;font-size:.9rem}
+
+/* FOOTER */
+footer{background:#080808;border-top:1px solid var(--border)}
+.footer-inner{max-width:1100px;margin:0 auto;padding:56px 40px 36px;display:grid;grid-template-columns:1fr auto;gap:56px}
+.footer-logo-txt{font-family:'Bebas Neue';font-size:2rem;letter-spacing:3px;color:var(--lime)}
+.footer-est{font-size:.62rem;letter-spacing:2px;color:var(--grey);margin:6px 0 14px}
+.footer-social{display:flex;gap:18px}
+.footer-social a{color:var(--grey);font-size:.7rem;letter-spacing:1.5px;transition:color .2s}
+.footer-social a:hover{color:var(--lime)}
+.footer-links-group{display:flex;gap:48px}
+.fl-col{display:flex;flex-direction:column;gap:10px}
+.fl-head{font-size:.58rem;letter-spacing:3px;text-transform:uppercase;font-weight:700;color:var(--lime);margin-bottom:4px}
+.fl-col a{color:var(--grey);font-size:.78rem;transition:color .2s}
+.fl-col a:hover{color:var(--white)}
+.footer-copy{text-align:center;padding:18px 40px 22px;font-size:.6rem;letter-spacing:1.5px;color:rgba(245,245,240,.18);border-top:1px solid var(--border)}
+
+/* RESPONSIVE */
+@media(max-width:960px){
+  nav{padding:0 22px}.nav-links{display:none}.nav-burger{display:block}
+  .tiers-grid{grid-template-columns:1fr 1fr}.how-grid{grid-template-columns:1fr 1fr}
+  .how-step::after{display:none}.footer-inner{grid-template-columns:1fr;gap:32px}
+  .footer-links-group{flex-wrap:wrap;gap:24px}
+  .points-banner{grid-template-columns:1fr}
+  .pts-col+.pts-col{border-left:none;border-top:1px solid rgba(255,255,255,.06)}
+  .vip-perks-grid{grid-template-columns:1fr}
+}
+@media(max-width:600px){
+  .container{padding:0 20px}.rewards-hero{padding:0 20px}
+  .tiers-grid,.how-grid{grid-template-columns:1fr}
+  .points-banner{padding:28px 20px}.cta-banner{padding:32px 20px}
+}
+@keyframes fadeUp{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+</style>
+</head>
+<body>
+
+<div class="smoke-wrap" id="smokeWrap"></div>
+
+<!-- NAV -->
+<nav id="nav">
+  <a href="index.html" class="nav-logo"><img src="data:image/webp;base64,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" alt="MadaKop Logo" style="height:46px;width:46px;object-fit:cover;border-radius:50%;filter:drop-shadow(0 0 8px rgba(191,255,60,.5))"><span style="font-family:Bebas Neue;font-size:1.6rem;letter-spacing:3px;color:#bfff3c">MadaKop<span style="color:#e91e8c">.</span></span></a>
+  <ul class="nav-links">
+    <li><a href="index.html#products">Shop</a></li>
+    <li><a href="strain-finder.html">Strain Finder</a></li>
+    <li><a href="tutorials.html">Tutorials</a></li>
+    <li><a href="login.html">Members</a></li>
+    <li><a href="register.html" class="nav-cta">Register</a></li>
+  </ul>
+  <button class="nav-burger" onclick="toggleMenu()">☰</button>
+</nav>
+
+<!-- MOBILE MENU -->
+<div class="mobile-menu" id="mobileMenu">
+  <button class="mobile-close" onclick="toggleMenu()">✕</button>
+  <ul>
+    <li><a href="index.html#products" onclick="toggleMenu()">Shop</a></li>
+    <li><a href="strain-finder.html" onclick="toggleMenu()">Strain Finder</a></li>
+    <li><a href="tutorials.html" onclick="toggleMenu()">Tutorials</a></li>
+    <li><a href="login.html" onclick="toggleMenu()">Members Login</a></li>
+    <li><a href="register.html" onclick="toggleMenu()">Register Now</a></li>
+  </ul>
+</div>
+
+<div class="rewards-wrap">
+
+  <!-- HERO -->
+  <div class="rewards-hero">
+    <span class="section-label">MadaKop Loyalty</span>
+    <h1 class="section-title">EARN WHILE<br><span class="pk">YOU BURN</span></h1>
+    <p>Every Rand you spend earns MK Points. Stack them up, unlock rewards, and level up your membership tier. Loyalty has never hit this good.</p>
+    <a href="register.html" class="btn-primary">Start Earning Points →</a>
+  </div>
+
+  <!-- POINTS BANNER -->
+  <div class="points-banner">
+    <div class="pts-col">
+      <div class="pts-val lime">1,250</div>
+      <div class="pts-label">Your MK Points</div>
+      <div class="pts-sub">Worth ~R125 in rewards</div>
+    </div>
+    <div class="pts-col">
+      <div class="pts-val pink">Silver</div>
+      <div class="pts-label">Current Tier</div>
+      <div class="pts-sub">750 pts to Gold unlock</div>
+    </div>
+    <div class="pts-col">
+      <div class="pts-val purple">R3 480</div>
+      <div class="pts-label">Total Spent</div>
+      <div class="pts-sub">Since Jan 2025</div>
+    </div>
+  </div>
+
+  <div class="container">
+
+    <!-- TIERS -->
+    <div class="tiers-section">
+      <span class="section-label">Membership Tiers</span>
+      <h2 class="section-title">LEVEL <span class="pk">UP</span></h2>
+      <p>Spend more, earn more, unlock bigger benefits. Each tier brings exclusive perks you can't get anywhere else.</p>
+      <div class="tiers-grid">
+
+        <div class="tier-card bronze">
+          <div class="tier-crown">🥉</div>
+          <div class="tier-card-name">Bronze</div>
+          <div class="tier-range">0 – 999 MK Points</div>
+          <ul class="tier-perks">
+            <li>1 MK Point per R10 spent</li>
+            <li>Access to member drop alerts</li>
+            <li>Birthday discount (5%)</li>
+            <li>Event early notifications</li>
+          </ul>
+        </div>
+
+        <div class="tier-card silver">
+          <div class="tier-crown">🥈</div>
+          <div class="tier-card-name">Silver</div>
+          <div class="tier-range">1,000 – 2,999 MK Points</div>
+          <ul class="tier-perks">
+            <li>1.5 MK Points per R10 spent</li>
+            <li>10% off all orders</li>
+            <li>Priority customer support</li>
+            <li>Monthly sample pack eligibility</li>
+            <li>Event early access</li>
+          </ul>
+        </div>
+
+        <div class="tier-card gold-t">
+          <span class="popular-badge">Most Popular</span>
+          <div class="tier-crown">🏆</div>
+          <div class="tier-card-name">Gold</div>
+          <div class="tier-range">3,000 – 7,999 MK Points</div>
+          <ul class="tier-perks">
+            <li>2x MK Points per R10 spent</li>
+            <li>15% off all orders</li>
+            <li>Free delivery every order</li>
+            <li>Quarterly surprise gift box</li>
+            <li>Guaranteed 4/20 event ticket</li>
+            <li>Access to limited collab drops</li>
+          </ul>
+        </div>
+
+        <div class="tier-card vip-t">
+          <div class="vip-inner">
+            <div class="vip-left">
+              <div class="tier-crown">👑</div>
+              <div class="tier-card-name">VIP</div>
+              <div class="tier-range">8,000+ MK Points</div>
+            </div>
+            <ul class="tier-perks vip-perks-grid">
+              <li>3x MK Points per R10 spent</li>
+              <li>20% off all orders forever</li>
+              <li>Free priority same-day delivery</li>
+              <li>Personal drop concierge service</li>
+              <li>Monthly mystery box delivered</li>
+              <li>VIP-only product releases</li>
+              <li>Reserved seating at all MK events</li>
+              <li>Direct WhatsApp line to the team</li>
+            </ul>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- HOW IT WORKS -->
+    <div class="how-section">
+      <span class="section-label">Simple &amp; Rewarding</span>
+      <h2 class="section-title">HOW IT <span class="pk">WORKS</span></h2>
+      <p>Four easy steps from zero to rewards. No complicated rules, no fine print.</p>
+      <div class="how-grid">
+        <div class="how-step">
+          <div class="how-num">01</div>
+          <div class="how-icon">📋</div>
+          <div class="how-title">Register Free</div>
+          <div class="how-desc">Create your MadaKop member account and get your unique membership code instantly.</div>
+        </div>
+        <div class="how-step">
+          <div class="how-num">02</div>
+          <div class="how-icon">🛍️</div>
+          <div class="how-title">Shop &amp; Earn</div>
+          <div class="how-desc">Every R10 you spend earns MK Points. The higher your tier, the more points per Rand.</div>
+        </div>
+        <div class="how-step">
+          <div class="how-num">03</div>
+          <div class="how-icon">📈</div>
+          <div class="how-title">Level Up</div>
+          <div class="how-desc">Stack points to unlock Bronze → Silver → Gold → VIP tiers with increasingly powerful perks.</div>
+        </div>
+        <div class="how-step">
+          <div class="how-num">04</div>
+          <div class="how-icon">🎁</div>
+          <div class="how-title">Redeem Rewards</div>
+          <div class="how-desc">Spend MK Points in the rewards shop on free products, merch, discounts, and experiences.</div>
+        </div>
+      </div>
+    </div>
+
+    <!-- EARN TABLE -->
+    <div class="earn-table-section">
+      <span class="section-label">Bonus Points</span>
+      <h2 class="section-title">MORE WAYS TO <span class="pk">EARN</span></h2>
+      <p>Beyond shopping, rack up points with these bonus actions.</p>
+      <div style="overflow-x:auto;margin-top:28px">
+        <table class="earn-table">
+          <thead>
+            <tr><th>Action</th><th>Points Earned</th><th>Frequency</th><th></th></tr>
+          </thead>
+          <tbody>
+            <tr><td>Purchase (per R10 spent)</td><td><span class="earn-pts">1–3 pts</span></td><td>Every order</td><td><span class="earn-action">Auto</span></td></tr>
+            <tr><td>Refer a Friend (who registers)</td><td><span class="earn-pts">200 pts</span></td><td>Per referral</td><td><span class="earn-action">Referral</span></td></tr>
+            <tr><td>Leave a Product Review</td><td><span class="earn-pts">50 pts</span></td><td>Per review</td><td><span class="earn-action">Review</span></td></tr>
+            <tr><td>Attend a MadaKop Event</td><td><span class="earn-pts">150 pts</span></td><td>Per event</td><td><span class="earn-action">Event</span></td></tr>
+            <tr><td>Birthday Month Bonus</td><td><span class="earn-pts">500 pts</span></td><td>Once/year</td><td><span class="earn-action">Auto</span></td></tr>
+            <tr><td>Follow @madakop_ on Instagram</td><td><span class="earn-pts">25 pts</span></td><td>Once</td><td><span class="earn-action">Social</span></td></tr>
+            <tr><td>Share a Post &amp; Tag Us</td><td><span class="earn-pts">75 pts</span></td><td>Weekly max</td><td><span class="earn-action">Social</span></td></tr>
+            <tr><td>Complete the Strain Finder Quiz</td><td><span class="earn-pts">30 pts</span></td><td>Once</td><td><span class="earn-action">Activity</span></td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- REWARDS SHOP -->
+    <div class="rewards-shop">
+      <span class="section-label">Rewards Shop</span>
+      <h2 class="section-title">SPEND YOUR <span class="pk">POINTS</span></h2>
+      <p>Real rewards — not discount codes you forget to use. Actual products and experiences.</p>
+      <div class="rewards-grid">
+        <div class="reward-item">
+          <div class="ri-header">🌿<span class="ri-pts">500 pts</span></div>
+          <div class="ri-body"><div class="ri-name">Free 1g Sample</div><div class="ri-desc">Redeem for a free 1g sample of any available strain. No minimum purchase needed.</div><div class="ri-footer"><div class="ri-cost">500 MK pts</div><button class="ri-btn" onclick="redeemItem(this)">Redeem</button></div></div>
+        </div>
+        <div class="reward-item">
+          <div class="ri-header">🎽<span class="ri-pts">800 pts</span></div>
+          <div class="ri-body"><div class="ri-name">MK Branded Tee</div><div class="ri-desc">Exclusive MadaKop culture tee. Limited colourways, members-only design. Flex the logo.</div><div class="ri-footer"><div class="ri-cost">800 MK pts</div><button class="ri-btn" onclick="redeemItem(this)">Redeem</button></div></div>
+        </div>
+        <div class="reward-item">
+          <div class="ri-header">⚙️<span class="ri-pts">400 pts</span></div>
+          <div class="ri-body"><div class="ri-name">MK 4-Piece Grinder</div><div class="ri-desc">The MadaKop lime &amp; pink CNC grinder. Yours free when you hit 400 pts.</div><div class="ri-footer"><div class="ri-cost">400 MK pts</div><button class="ri-btn" onclick="redeemItem(this)">Redeem</button></div></div>
+        </div>
+        <div class="reward-item">
+          <div class="ri-header">🎟️<span class="ri-pts">1000 pts</span></div>
+          <div class="ri-body"><div class="ri-name">Event VIP Ticket</div><div class="ri-desc">Free VIP ticket to any upcoming MadaKop event. Includes meet &amp; greet with the team.</div><div class="ri-footer"><div class="ri-cost">1,000 MK pts</div><button class="ri-btn ri-locked" disabled>Gold+ Only</button></div></div>
+        </div>
+        <div class="reward-item">
+          <div class="ri-header">📦<span class="ri-pts">1500 pts</span></div>
+          <div class="ri-body"><div class="ri-name">Mystery Box</div><div class="ri-desc">Curated mystery box worth R600+. Mix of flower, accessories, and MK merch. Surprise guaranteed.</div><div class="ri-footer"><div class="ri-cost">1,500 MK pts</div><button class="ri-btn ri-locked" disabled>Gold+ Only</button></div></div>
+        </div>
+        <div class="reward-item">
+          <div class="ri-header">💸<span class="ri-pts">300 pts</span></div>
+          <div class="ri-body"><div class="ri-name">R100 Store Credit</div><div class="ri-desc">300 points converts to R100 store credit. Use it on anything in the shop, no expiry.</div><div class="ri-footer"><div class="ri-cost">300 MK pts</div><button class="ri-btn" onclick="redeemItem(this)">Redeem</button></div></div>
+        </div>
+      </div>
+    </div>
+
+    <!-- CTA -->
+    <div class="cta-banner">
+      <h2>READY TO START <span style="color:var(--lime)">EARNING?</span></h2>
+      <p>Join MadaKop members already stacking points and unlocking rewards every week. Free to join.</p>
+      <a href="register.html" class="btn-primary" style="margin-right:14px">Register Free →</a>
+      <button class="btn-ghost" onclick="window.location='login.html'">Already a member</button>
+    </div>
+
+  </div>
+</div>
+
+<!-- FOOTER -->
+<footer>
+  <div class="checker alt"></div>
+  <div class="footer-inner">
+    <div>
+      <div style="display:flex;align-items:center;gap:12px"><img src="data:image/webp;base64,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" alt="MadaKop" style="height:46px;width:46px;border-radius:50%;object-fit:cover;filter:drop-shadow(0 0 6px rgba(191,255,60,.35))"><div class="footer-logo-txt">MadaKop</div></div>
+      <div class="footer-est">est. 2025 · One Love Family 🌿</div>
+      <div class="footer-social">
+        <a href="https://instagram.com/madakop_" target="_blank">📸 @madakop_</a>
+        <a href="https://facebook.com" target="_blank">📘 Mada Kop</a>
+      </div>
+    </div>
+    <div class="footer-links-group">
+      <div class="fl-col">
+        <div class="fl-head">Shop</div>
+        <a href="index.html#products">Browse Menu</a>
+        <a href="strain-finder.html">Strain Finder</a>
+        <a href="tutorials.html">Tutorials</a>
+      </div>
+      <div class="fl-col">
+        <div class="fl-head">Club</div>
+        <a href="index.html#membership">Membership</a>
+        <a href="index.html#rules">Club Rules</a>
+        <a href="register.html">Register</a>
+        <a href="login.html">Members Login</a>
+      </div>
+      <div class="fl-col">
+        <div class="fl-head">Contact</div>
+        <a href="tel:0736292224">073 629 2224</a>
+        <a href="tel:0652522668">065 252 2668</a>
+        <a href="index.html#about">About Us</a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-copy">© 2025 MadaKop Healing Hub &amp; Private Club · 18+ Only · Points have no cash value.</div>
+</footer>
+
+<script>
+(function(){const w=document.getElementById('smokeWrap');for(let i=0;i<12;i++){const p=document.createElement('div');p.className='puff';const s=80+Math.random()*200;p.style.cssText=`width:${s}px;height:${s}px;left:${Math.random()*100}%;animation-duration:${14+Math.random()*18}s;animation-delay:${-Math.random()*26}s`;w.appendChild(p)}})();
+
+function toggleMenu(){document.getElementById('mobileMenu').classList.toggle('open')}
+
+function redeemItem(btn){
+  btn.textContent='✓ Redeemed!';
+  btn.style.background='var(--lime)';btn.style.color='var(--dark)';btn.style.borderColor='var(--lime)';btn.style.cursor='default';btn.onclick=null;
+}
+
+const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.style.animation='fadeUp .5s ease both';obs.unobserve(e.target)}})},{threshold:.1});
+document.querySelectorAll('.tier-card,.how-step,.reward-item').forEach(el=>{el.style.opacity='0';obs.observe(el)});
+</script>
+</body>
+</html>

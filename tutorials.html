@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MadaKop – Rolling Tutorials</title>
+<link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<style>
+
+:root{--lime:#bfff3c;--lime-d:#8fcc00;--pink:#e91e8c;--pink-d:#c0166f;--dark:#0d0d0d;--card:#161616;--card2:#1c1c1c;--white:#f5f5f0;--grey:rgba(245,245,240,.52);--purple:#a855f7;--orange:#ff7a2a;--border:rgba(191,255,60,.12)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--dark);color:var(--white);font-family:'DM Sans',sans-serif;overflow-x:hidden;min-height:100vh}
+a{text-decoration:none;color:inherit}ul{list-style:none}
+.pk{color:var(--pink)}.lm{color:var(--lime)}
+/* SMOKE */
+.smoke-wrap{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
+.puff{position:absolute;border-radius:50%;background:radial-gradient(circle,rgba(191,255,60,.04) 0%,transparent 70%);animation:floatUp linear infinite;bottom:-200px}
+@keyframes floatUp{0%{transform:translateY(0) scale(1);opacity:0}10%{opacity:1}90%{opacity:.2}100%{transform:translateY(-110vh) scale(2.5);opacity:0}}
+/* NAV */
+nav{position:fixed;top:0;left:0;right:0;z-index:900;display:flex;align-items:center;justify-content:space-between;padding:0 36px;height:70px;background:rgba(13,13,13,.94);border-bottom:1px solid var(--border);backdrop-filter:blur(18px);transition:background .3s}
+.nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
+.nav-logo img{height:46px;width:46px;object-fit:cover;border-radius:50%;filter:drop-shadow(0 0 8px rgba(191,255,60,.5));transition:filter .3s;flex-shrink:0}
+.nav-logo img:hover{filter:drop-shadow(0 0 14px rgba(191,255,60,.8))}
+.nav-logo-txt{font-family:'Bebas Neue';font-size:1.6rem;letter-spacing:3px;color:var(--lime)}
+.nav-logo-txt span{color:var(--pink)}
+.nav-links{display:flex;gap:18px;align-items:center}
+.nav-links a{color:var(--grey);font-size:.62rem;letter-spacing:2px;text-transform:uppercase;font-weight:600;transition:color .2s}
+.nav-links a:hover{color:var(--white)}
+.nav-cta{background:var(--pink)!important;color:#fff!important;padding:7px 16px;border-radius:3px;transition:background .2s!important}
+.nav-cta:hover{background:var(--pink-d)!important}
+.nav-burger{display:none;background:none;border:none;color:var(--white);font-size:1.5rem;cursor:pointer;padding:4px}
+/* MOBILE MENU */
+.mobile-menu{position:fixed;inset:0;z-index:850;background:rgba(13,13,13,.98);padding:86px 32px 40px;flex-direction:column;display:none;backdrop-filter:blur(20px)}
+.mobile-menu.open{display:flex}
+.mobile-menu ul{display:flex;flex-direction:column}
+.mobile-menu li a{display:block;font-family:'Bebas Neue';font-size:2rem;letter-spacing:3px;padding:14px 0;border-bottom:1px solid var(--border);color:var(--white);transition:color .2s}
+.mobile-menu li a:hover{color:var(--lime)}
+.mobile-close{position:absolute;top:20px;right:24px;background:none;border:none;color:var(--white);font-size:2rem;cursor:pointer}
+/* CHECKER */
+.checker{height:14px;background-image:repeating-linear-gradient(90deg,var(--lime) 0,var(--lime) 14px,var(--pink) 14px,var(--pink) 28px);opacity:.75}
+.checker.alt{background-image:repeating-linear-gradient(90deg,var(--pink) 0,var(--pink) 14px,var(--lime) 14px,var(--lime) 28px)}
+/* BUTTONS */
+.btn-primary{background:var(--lime);color:var(--dark);font-family:'Bebas Neue';font-size:1rem;letter-spacing:3px;padding:14px 32px;border:none;cursor:pointer;border-radius:3px;transition:all .2s;display:inline-block;text-align:center}
+.btn-primary:hover{background:#d4ff5c;transform:translateY(-2px);box-shadow:0 8px 26px rgba(191,255,60,.25)}
+.btn-pink{background:var(--pink);color:#fff;font-family:'Bebas Neue';font-size:1rem;letter-spacing:3px;padding:14px 32px;border:none;cursor:pointer;border-radius:3px;transition:all .2s;display:inline-block;text-align:center}
+.btn-pink:hover{background:var(--pink-d);transform:translateY(-2px)}
+.btn-outline{background:transparent;border:1.5px solid rgba(245,245,240,.2);color:var(--white);font-family:'DM Sans';font-size:.74rem;letter-spacing:2px;text-transform:uppercase;font-weight:700;padding:12px 20px;border-radius:3px;cursor:pointer;transition:all .2s;display:inline-block;text-align:center}
+.btn-outline:hover{border-color:var(--white)}
+.btn-ghost{background:transparent;color:var(--grey);font-size:.7rem;letter-spacing:2px;text-transform:uppercase;font-weight:600;transition:color .2s;display:inline-block;border:none;cursor:pointer;font-family:'DM Sans';padding:0}
+.btn-ghost:hover{color:var(--white)}
+/* LAYOUT */
+.container{max-width:1100px;margin:0 auto;padding:0 40px}
+.section-label{display:block;font-size:.6rem;letter-spacing:4px;text-transform:uppercase;font-weight:700;color:var(--lime);margin-bottom:12px}
+.section-title{font-family:'Bebas Neue';font-size:clamp(2.2rem,5vw,3.4rem);letter-spacing:3px;line-height:1;margin-bottom:28px}
+/* FOOTER */
+footer{background:#080808;border-top:1px solid var(--border);position:relative;z-index:10}
+.footer-inner{max-width:1100px;margin:0 auto;padding:52px 40px 32px;display:grid;grid-template-columns:1fr auto;gap:52px}
+.footer-brand{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.footer-brand img{height:46px;width:46px;border-radius:50%;object-fit:cover;filter:drop-shadow(0 0 6px rgba(191,255,60,.35))}
+.footer-logo-txt{font-family:'Bebas Neue';font-size:1.8rem;letter-spacing:3px;color:var(--lime)}
+.footer-est{font-size:.6rem;letter-spacing:2px;color:var(--grey);margin-bottom:14px}
+.footer-social{display:flex;gap:16px;flex-wrap:wrap}
+.footer-social a{color:var(--grey);font-size:.7rem;letter-spacing:1.5px;transition:color .2s}
+.footer-social a:hover{color:var(--lime)}
+.footer-links-group{display:flex;gap:44px}
+.fl-col{display:flex;flex-direction:column;gap:10px}
+.fl-head{font-size:.57rem;letter-spacing:3px;text-transform:uppercase;font-weight:700;color:var(--lime);margin-bottom:4px}
+.fl-col a{color:var(--grey);font-size:.76rem;transition:color .2s}
+.fl-col a:hover{color:var(--white)}
+.footer-copy{text-align:center;padding:16px 40px 20px;font-size:.58rem;letter-spacing:1.5px;color:rgba(245,245,240,.16);border-top:1px solid var(--border)}
+/* FORMS */
+.form-group{margin-bottom:16px}
+.form-group label{display:block;font-size:.63rem;letter-spacing:2px;text-transform:uppercase;font-weight:600;color:var(--grey);margin-bottom:7px}
+.form-group input,.form-group select{width:100%;background:rgba(255,255,255,.04);border:1.5px solid rgba(191,255,60,.15);color:var(--white);font-family:'DM Sans';font-size:.88rem;padding:12px 13px;border-radius:3px;outline:none;transition:border-color .2s,box-shadow .2s}
+.form-group input:focus,.form-group select:focus{border-color:var(--lime);box-shadow:0 0 0 3px rgba(191,255,60,.1)}
+.form-group input::placeholder{color:rgba(245,245,240,.2)}
+.form-group select{cursor:pointer}
+.form-group select option{background:#1a1a1a;color:var(--white)}
+.form-hint{font-size:.67rem;color:rgba(245,245,240,.28);margin-top:4px;line-height:1.5}
+.form-err{font-size:.67rem;color:var(--pink);margin-top:4px;display:none}
+.form-err.show{display:block}
+.auth-submit{width:100%;background:var(--lime);color:var(--dark);font-family:'DM Sans';font-size:.78rem;letter-spacing:3px;text-transform:uppercase;font-weight:700;padding:14px;border:none;cursor:pointer;border-radius:3px;transition:box-shadow .2s,transform .15s}
+.auth-submit:hover{box-shadow:0 8px 30px rgba(191,255,60,.35);transform:translateY(-1px)}
+.auth-submit.pink-btn{background:var(--pink);color:#fff}
+.auth-submit.pink-btn:hover{box-shadow:0 8px 30px rgba(233,30,140,.35)}
+.auth-submit.ghost-btn{background:transparent;border:1.5px solid rgba(255,255,255,.18);color:var(--white)}
+.auth-submit.ghost-btn:hover{border-color:var(--white);box-shadow:none;transform:none}
+.auth-submit.loading{opacity:.6;pointer-events:none}
+@media(max-width:960px){nav{padding:0 20px}.nav-links{display:none}.nav-logo-txt{display:none}.nav-burger{display:block}.footer-inner{grid-template-columns:1fr;gap:28px}.footer-links-group{flex-wrap:wrap;gap:22px}}
+@media(max-width:600px){.container{padding:0 18px}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
+
+/* TUT PAGE */
+.tut-wrap{padding:110px 0 80px;position:relative;z-index:1}
+.tut-hero{max-width:1100px;margin:0 auto 72px;padding:0 40px;display:grid;grid-template-columns:1fr auto;gap:48px;align-items:center}
+.tut-hero-visual{font-size:7rem;text-align:center;opacity:.8}
+.tut-hero p{font-size:.9rem;color:var(--grey);max-width:480px;line-height:1.8;margin-bottom:28px}
+.hero-stats-row{display:flex;gap:28px}
+.h-stat-val{font-family:'Bebas Neue';font-size:2.2rem;color:var(--lime);letter-spacing:2px}
+.h-stat-lbl{font-size:.6rem;letter-spacing:2px;text-transform:uppercase;color:var(--grey)}
+/* FEATURED TUTORIAL */
+.featured-tut{max-width:1100px;margin:0 auto 80px;padding:0 40px}
+.ft-card{background:var(--card2);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.ft-header{padding:28px 36px;border-bottom:1px solid rgba(255,255,255,.06);display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px}
+.ft-badge{font-size:.58rem;letter-spacing:3px;text-transform:uppercase;color:var(--lime);font-weight:700;margin-bottom:6px}
+.ft-title{font-family:'Bebas Neue';font-size:1.8rem;letter-spacing:2px}
+.ft-title span{color:var(--lime)}
+.ft-meta{display:flex;gap:18px;font-size:.66rem;letter-spacing:2px;text-transform:uppercase;color:var(--grey)}
+.ft-body{padding:36px}
+.steps-nav{display:flex;gap:8px;margin-bottom:32px;flex-wrap:wrap}
+.step-btn{background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.08);color:var(--grey);font-size:.64rem;letter-spacing:2px;text-transform:uppercase;font-weight:700;padding:8px 14px;cursor:pointer;border-radius:2px;transition:all .2s;font-family:'DM Sans'}
+.step-btn:hover{border-color:rgba(191,255,60,.4);color:var(--lime)}
+.step-btn.active{background:var(--lime);color:var(--dark);border-color:var(--lime)}
+.step-content{display:none;animation:fadeUp .35s ease}
+.step-content.active{display:grid;grid-template-columns:1fr 1fr;gap:44px;align-items:center}
+.step-visual{height:240px;background:linear-gradient(135deg,#1e2a10,#0d0d0d);border:1px solid var(--border);border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:5.5rem}
+.step-num{font-size:.62rem;letter-spacing:3px;text-transform:uppercase;color:var(--lime);font-weight:700;margin-bottom:8px}
+.step-title{font-family:'Bebas Neue';font-size:1.7rem;letter-spacing:2px;margin-bottom:12px}
+.step-text{font-size:.84rem;color:var(--grey);line-height:1.8;margin-bottom:14px}
+.step-tip{background:rgba(191,255,60,.06);border-left:3px solid var(--lime);padding:13px 15px;font-size:.78rem;color:var(--grey);line-height:1.6}
+.step-tip strong{color:var(--lime)}
+.step-nav-btns{display:flex;gap:12px;margin-top:18px;flex-wrap:wrap}
+/* SKILL TABS */
+.tut-all{max-width:1100px;margin:0 auto;padding:0 40px 80px}
+.skill-tabs{display:flex;gap:8px;margin-bottom:32px;flex-wrap:wrap}
+.skill-tab{background:rgba(255,255,255,.04);border:1.5px solid rgba(255,255,255,.08);color:var(--grey);font-size:.64rem;letter-spacing:2px;text-transform:uppercase;font-weight:700;padding:9px 18px;cursor:pointer;border-radius:2px;transition:all .2s;font-family:'DM Sans'}
+.skill-tab:hover{border-color:rgba(191,255,60,.4);color:var(--lime)}
+.skill-tab.active{background:var(--lime);color:var(--dark);border-color:var(--lime)}
+/* TUT CARDS */
+.tut-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:20px;margin-bottom:40px}
+.tut-card{background:var(--card);border:1px solid var(--border);border-radius:6px;overflow:hidden;transition:transform .2s,border-color .2s}
+.tut-card:hover{transform:translateY(-6px);border-color:rgba(191,255,60,.3)}
+.tut-card.hidden{display:none}
+.tc-header{height:120px;display:flex;align-items:center;justify-content:center;font-size:3.5rem;position:relative}
+.diff-badge{position:absolute;top:10px;left:10px;font-size:.54rem;letter-spacing:2px;text-transform:uppercase;font-weight:700;padding:3px 9px;border-radius:2px}
+.diff-beginner{background:rgba(191,255,60,.2);color:var(--lime)}
+.diff-intermediate{background:rgba(255,122,42,.2);color:var(--orange)}
+.diff-advanced{background:rgba(233,30,140,.2);color:var(--pink)}
+.time-badge{position:absolute;top:10px;right:10px;font-size:.54rem;letter-spacing:1px;color:var(--grey);background:rgba(0,0,0,.5);padding:3px 8px;border-radius:2px}
+.tc-body{padding:18px 20px}
+.tc-type{font-size:.58rem;letter-spacing:2px;text-transform:uppercase;color:var(--lime);font-weight:700;margin-bottom:4px}
+.tc-title{font-family:'Bebas Neue';font-size:1.2rem;letter-spacing:1px;margin-bottom:8px}
+.tc-desc{font-size:.76rem;color:var(--grey);line-height:1.55;margin-bottom:14px}
+.tc-supplies{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:14px}
+.supply-tag{font-size:.58rem;letter-spacing:1px;color:var(--grey);background:rgba(255,255,255,.05);border:1px solid rgba(255,255,255,.08);padding:3px 8px;border-radius:2px}
+.tc-footer{display:flex;justify-content:flex-end}
+.tc-btn{background:transparent;border:1px solid var(--lime);color:var(--lime);font-size:.6rem;letter-spacing:2px;text-transform:uppercase;font-weight:700;padding:7px 14px;cursor:pointer;border-radius:2px;transition:all .2s;font-family:'DM Sans';display:inline-block}
+.tc-btn:hover{background:var(--lime);color:var(--dark)}
+/* RESPONSIVE */
+@media(max-width:900px){.tut-grid{grid-template-columns:1fr 1fr}.step-content.active{grid-template-columns:1fr}}
+@media(max-width:600px){.tut-grid{grid-template-columns:1fr}.tut-hero{grid-template-columns:1fr}.tut-hero-visual{display:none}}
+</style>
+</head>
+<body>
+<div class="smoke-wrap" id="smokeWrap"></div>
+<nav id="nav">
+  <a href="index.html" class="nav-logo">
+    <img src="data:image/webp;base64,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" alt="MadaKop Logo">
+    <span class="nav-logo-txt">MadaKop<span>.</span></span>
+  </a>
+  <ul class="nav-links">
+    <li><a href="index.html#products">Shop</a></li>
+    <li><a href="index.html#events">Events</a></li>
+    <li><a href="rewards.html">Rewards</a></li>
+    <li><a href="strain-finder.html">Strain Finder</a></li>
+    <li><a href="tutorials.html">Tutorials</a></li>
+    <li><a href="login.html">Members</a></li>
+    <li><a href="register.html" class="nav-cta">Register</a></li>
+  </ul>
+  <button class="nav-burger" onclick="toggleMenu()">☰</button>
+</nav>
+<div class="mobile-menu" id="mobileMenu">
+  <button class="mobile-close" onclick="toggleMenu()">✕</button>
+  <ul>
+    <li><a href="index.html#products" onclick="toggleMenu()">Shop</a></li>
+    <li><a href="index.html#events" onclick="toggleMenu()">Events</a></li>
+    <li><a href="rewards.html" onclick="toggleMenu()">Rewards</a></li>
+    <li><a href="strain-finder.html" onclick="toggleMenu()">Strain Finder</a></li>
+    <li><a href="tutorials.html" onclick="toggleMenu()">Tutorials</a></li>
+    <li><a href="login.html" onclick="toggleMenu()">Members</a></li>
+    <li><a href="register.html" onclick="toggleMenu()">Register Now</a></li>
+  </ul>
+</div>
+<div class="tut-wrap">
+  <div class="tut-hero">
+    <div>
+      <span class="section-label">MadaKop University</span>
+      <h1 class="section-title">ROLL LIKE A <span class="pk">PRO</span></h1>
+      <p>Whether you're picking up a wrap for the first time or perfecting your backwood spiral — MadaKop tutorials have you covered. Step-by-step, no judgment.</p>
+      <div class="hero-stats-row">
+        <div class="h-stat"><div class="h-stat-val">12</div><div class="h-stat-lbl">Tutorials</div></div>
+        <div class="h-stat"><div class="h-stat-val">3</div><div class="h-stat-lbl">Skill Levels</div></div>
+        <div class="h-stat"><div class="h-stat-val">Free</div><div class="h-stat-lbl">Always</div></div>
+      </div>
+    </div>
+    <div class="tut-hero-visual">🌿</div>
+  </div>
+
+  <div class="featured-tut">
+    <div class="ft-card">
+      <div class="ft-header">
+        <div>
+          <div class="ft-badge">🌟 Featured Tutorial</div>
+          <div class="ft-title">The <span>Perfect Backwood</span>: Complete Guide</div>
+        </div>
+        <div class="ft-meta"><span>⏱ 10–15 min</span><span>📶 Intermediate</span><span>🌿 Tobacco Leaf</span></div>
+      </div>
+      <div class="ft-body">
+        <div class="steps-nav">
+          <button class="step-btn active" onclick="showStep(1)">Step 1</button>
+          <button class="step-btn" onclick="showStep(2)">Step 2</button>
+          <button class="step-btn" onclick="showStep(3)">Step 3</button>
+          <button class="step-btn" onclick="showStep(4)">Step 4</button>
+          <button class="step-btn" onclick="showStep(5)">Step 5</button>
+          <button class="step-btn" onclick="showStep(6)">Step 6 — Done 🔥</button>
+        </div>
+        <div class="step-content active" id="s1">
+          <div class="step-visual">📦</div>
+          <div><div class="step-num">STEP 01 / 06</div><div class="step-title">Gather Your Supplies</div><div class="step-text">You'll need a fresh Backwood, your ground flower, a lighter, and a flat clean surface. Grind medium-fine — not powder, not chunky.</div><div class="step-tip"><strong>Pro Tip:</strong> Warm the backwood briefly with your hands before splitting. A warm wrap splits much cleaner.</div><div class="step-nav-btns"><button class="btn-primary" onclick="showStep(2)">Next Step →</button></div></div>
+        </div>
+        <div class="step-content" id="s2">
+          <div class="step-visual">✂️</div>
+          <div><div class="step-num">STEP 02 / 06</div><div class="step-title">Split the Cigar</div><div class="step-text">Make one clean lengthwise cut from tip to tip. Remove and discard the tobacco inside completely.</div><div class="step-tip"><strong>Pro Tip:</strong> Lick the inside once after splitting — keeps the leaf from cracking as you work.</div><div class="step-nav-btns"><button class="btn-outline" onclick="showStep(1)">← Back</button><button class="btn-primary" onclick="showStep(3)">Next Step →</button></div></div>
+        </div>
+        <div class="step-content" id="s3">
+          <div class="step-visual">🌿</div>
+          <div><div class="step-num">STEP 03 / 06</div><div class="step-title">Load Your Flower</div><div class="step-text">Distribute your ground flower evenly, leaving about 1cm at the tip. Don't overload — tight and even burns best.</div><div class="step-tip"><strong>Pro Tip:</strong> A little more in the middle, tapering toward the ends, creates a perfect cone shape.</div><div class="step-nav-btns"><button class="btn-outline" onclick="showStep(2)">← Back</button><button class="btn-primary" onclick="showStep(4)">Next Step →</button></div></div>
+        </div>
+        <div class="step-content" id="s4">
+          <div class="step-visual">🔄</div>
+          <div><div class="step-num">STEP 04 / 06</div><div class="step-title">The Tuck and Roll</div><div class="step-text">Hold with both thumbs inside, fingers outside. Tuck the inner edge tightly over the flower, then roll forward in one smooth motion.</div><div class="step-tip"><strong>Pro Tip:</strong> Even pressure all the way across. Slow and consistent beats rushing every time.</div><div class="step-nav-btns"><button class="btn-outline" onclick="showStep(3)">← Back</button><button class="btn-primary" onclick="showStep(5)">Next Step →</button></div></div>
+        </div>
+        <div class="step-content" id="s5">
+          <div class="step-visual">💦</div>
+          <div><div class="step-num">STEP 05 / 06</div><div class="step-title">Seal the Wrap</div><div class="step-text">Lick the seam generously — backwoods need more moisture than regular papers. Press firmly along the entire seam to close any gaps.</div><div class="step-tip"><strong>Pro Tip:</strong> Work section by section — a few lick-and-press passes is better than one big lick.</div><div class="step-nav-btns"><button class="btn-outline" onclick="showStep(4)">← Back</button><button class="btn-primary" onclick="showStep(6)">Final Step →</button></div></div>
+        </div>
+        <div class="step-content" id="s6">
+          <div class="step-visual">🔥</div>
+          <div><div class="step-num">STEP 06 / 06 — YOU'RE DONE</div><div class="step-title">Dry and Light Up</div><div class="step-text">Wave your lighter quickly along the outside of the sealed wrap to dry it. Twist the tip, light evenly, and enjoy.</div><div class="step-tip"><strong>🏆 You've got it.</strong> The more you roll, the better you get. That's how everyone learns. One love. 🌿</div><div class="step-nav-btns"><button class="btn-outline" onclick="showStep(5)">← Back</button><a href="index.html#products" class="btn-primary">Shop Supplies →</a></div></div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="tut-all">
+    <span class="section-label">All Tutorials</span>
+    <h2 class="section-title">PICK YOUR <span class="pk">LEVEL</span></h2>
+    <div class="skill-tabs">
+      <button class="skill-tab active" onclick="filterTuts('all',this)">All Levels</button>
+      <button class="skill-tab" onclick="filterTuts('beginner',this)">🌱 Beginner</button>
+      <button class="skill-tab" onclick="filterTuts('intermediate',this)">💨 Intermediate</button>
+      <button class="skill-tab" onclick="filterTuts('advanced',this)">🔥 Advanced</button>
+    </div>
+    <div class="tut-grid">
+      <div class="tut-card" data-lvl="beginner"><div class="tc-header" style="background:linear-gradient(135deg,#1e2a10,#0d0d0d)">📜<span class="diff-badge diff-beginner">Beginner</span><span class="time-badge">⏱ 5 min</span></div><div class="tc-body"><div class="tc-type">Rolling Papers</div><div class="tc-title">Your First Joint: The Basics</div><div class="tc-desc">Never rolled before? This is your starting point. Clean and simple step-by-step guide.</div><div class="tc-supplies"><span class="supply-tag">Rolling papers</span><span class="supply-tag">Filter tips</span><span class="supply-tag">Grinder</span></div><div class="tc-footer"><a href="#" class="tc-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})">Start Tutorial</a></div></div></div>
+      <div class="tut-card" data-lvl="beginner"><div class="tc-header" style="background:linear-gradient(135deg,#1a1a0a,#0d0d0d)">🍃<span class="diff-badge diff-beginner">Beginner</span><span class="time-badge">⏱ 8 min</span></div><div class="tc-body"><div class="tc-type">Hemp Wraps</div><div class="tc-title">Hemp Wrap Blunt: Easy & Clean</div><div class="tc-desc">Hemp wraps are forgiving and taste clean. A great starting point before you hit the backwoods.</div><div class="tc-supplies"><span class="supply-tag">Hemp wrap</span><span class="supply-tag">1–1.5g flower</span></div><div class="tc-footer"><a href="#" class="tc-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})">Start Tutorial</a></div></div></div>
+      <div class="tut-card" data-lvl="intermediate"><div class="tc-header" style="background:linear-gradient(135deg,#1e2a10,#0d0d0d)">🍂<span class="diff-badge diff-intermediate">Intermediate</span><span class="time-badge">⏱ 10–15 min</span></div><div class="tc-body"><div class="tc-type">Backwood</div><div class="tc-title">The Perfect Backwood: Full Guide</div><div class="tc-desc">Natural tobacco leaf. More flavour, more technique. Our most popular tutorial — follow above.</div><div class="tc-supplies"><span class="supply-tag">Backwood cigar</span><span class="supply-tag">1.5–2g flower</span><span class="supply-tag">Lighter</span></div><div class="tc-footer"><a href="#" class="tc-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})">View Full Tutorial ↑</a></div></div></div>
+      <div class="tut-card" data-lvl="intermediate"><div class="tc-header" style="background:linear-gradient(135deg,#1a0a1a,#0d0d0d)">🌀<span class="diff-badge diff-intermediate">Intermediate</span><span class="time-badge">⏱ 12 min</span></div><div class="tc-body"><div class="tc-type">Dutch Masters</div><div class="tc-title">Dutch Master Split & Fill</div><div class="tc-desc">A classic. Learn the proper split, inner leaf removal, and the clean fill technique.</div><div class="tc-supplies"><span class="supply-tag">Dutch Master</span><span class="supply-tag">2g flower</span></div><div class="tc-footer"><a href="#" class="tc-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})">Start Tutorial</a></div></div></div>
+      <div class="tut-card" data-lvl="advanced"><div class="tc-header" style="background:linear-gradient(135deg,#1e1208,#0d0d0d)">🌀<span class="diff-badge diff-advanced">Advanced</span><span class="time-badge">⏱ 20 min</span></div><div class="tc-body"><div class="tc-type">Advanced</div><div class="tc-title">The Cross Joint: An Art Form</div><div class="tc-desc">Two joints, one intersection. The cross joint is for confident rollers only. Respect the craft.</div><div class="tc-supplies"><span class="supply-tag">3g flower</span><span class="supply-tag">King size papers ×2</span></div><div class="tc-footer"><a href="#" class="tc-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})">Start Tutorial</a></div></div></div>
+      <div class="tut-card" data-lvl="advanced"><div class="tc-header" style="background:linear-gradient(135deg,#1e2a10,#0d0d0d)">🏆<span class="diff-badge diff-advanced">Advanced</span><span class="time-badge">⏱ 30+ min</span></div><div class="tc-body"><div class="tc-type">Pro Level</div><div class="tc-title">Cone Roll: Perfect Shape Every Time</div><div class="tc-desc">The smoothest smoke, the hardest to master. Learn the rolling angle and tuck technique.</div><div class="tc-supplies"><span class="supply-tag">Cone papers</span><span class="supply-tag">2.5g flower</span><span class="supply-tag">Packing tool</span></div><div class="tc-footer"><a href="#" class="tc-btn" onclick="window.scrollTo({top:0,behavior:'smooth'})">Start Tutorial</a></div></div></div>
+    </div>
+    <div style="text-align:center;padding-top:8px">
+      <a href="index.html#products" class="btn-primary">Shop Rolling Supplies →</a>
+    </div>
+  </div>
+</div>
+<footer>
+  <div class="checker alt"></div>
+  <div class="footer-inner">
+    <div>
+      <div class="footer-brand">
+        <img src="data:image/webp;base64,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" alt="MadaKop">
+        <div class="footer-logo-txt">MadaKop</div>
+      </div>
+      <div class="footer-est">Healing Hub · Private Cannabis Club · Est. 2025 · One Love Family 🌿</div>
+      <div class="footer-social">
+        <a href="https://instagram.com/madakop_" target="_blank">📸 @madakop_</a>
+        <a href="https://facebook.com" target="_blank">📘 Mada Kop</a>
+        <a href="tel:0736292224">📞 073 629 2224</a>
+      </div>
+    </div>
+    <div class="footer-links-group">
+      <div class="fl-col">
+        <div class="fl-head">Shop</div>
+        <a href="index.html#products">Browse Menu</a>
+        <a href="strain-finder.html">Strain Finder</a>
+        <a href="tutorials.html">Tutorials</a>
+      </div>
+      <div class="fl-col">
+        <div class="fl-head">Club</div>
+        <a href="index.html#membership">Membership</a>
+        <a href="rewards.html">Rewards</a>
+        <a href="index.html#rules">Club Rules</a>
+        <a href="register.html">Register</a>
+        <a href="login.html">Members Login</a>
+      </div>
+      <div class="fl-col">
+        <div class="fl-head">Contact</div>
+        <a href="tel:0736292224">073 629 2224</a>
+        <a href="tel:0652522668">065 252 2668</a>
+        <a href="index.html#delivery">Delivery Info</a>
+        <a href="index.html#about">About Us</a>
+      </div>
+    </div>
+  </div>
+  <div class="footer-copy">© 2025 MadaKop Healing Hub &amp; Private Club · 18+ Only · Small Farm, Evaton, Sebokeng · Points have no cash value.</div>
+</footer>
+<script>
+
+function toggleMenu(){document.getElementById('mobileMenu').classList.toggle('open')}
+window.addEventListener('scroll',()=>{if(document.getElementById('nav'))document.getElementById('nav').style.background=scrollY>40?'rgba(13,13,13,.99)':'rgba(13,13,13,.94)'});
+(function(){const w=document.getElementById('smokeWrap');if(!w)return;for(let i=0;i<12;i++){const p=document.createElement('div');p.className='puff';const s=80+Math.random()*200;p.style.cssText=`width:${s}px;height:${s}px;left:${Math.random()*100}%;animation-duration:${14+Math.random()*18}s;animation-delay:${-Math.random()*26}s`;w.appendChild(p)}})();
+
+function showStep(n){
+  for(let i=1;i<=6;i++){
+    document.getElementById('s'+i).classList.toggle('active',i===n);
+    document.querySelectorAll('.step-btn')[i-1].classList.toggle('active',i===n);
+  }
+}
+function filterTuts(lvl,btn){
+  document.querySelectorAll('.skill-tab').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  document.querySelectorAll('.tut-card').forEach(c=>{
+    c.classList.toggle('hidden',lvl!=='all'&&c.dataset.lvl!==lvl);
+  });
+}
+</script>
+</body>
+</html>
