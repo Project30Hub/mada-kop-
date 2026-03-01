@@ -4,112 +4,64 @@
 <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MadaKop – Members Dashboard</title>
 <link rel="preconnect" href="https://fonts.googleapis.com"><link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
-
-:root{--lime:#bfff3c;--lime-d:#8fcc00;--pink:#e91e8c;--pink-d:#c0166f;--dark:#0d0d0d;--card:#161616;--card2:#1c1c1c;--white:#f5f5f0;--grey:rgba(245,245,240,.52);--purple:#a855f7;--orange:#ff7a2a;--border:rgba(191,255,60,.12)}
-*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
-html{scroll-behavior:smooth}
+:root{--lime:#bfff3c;--pink:#e91e8c;--pink-d:#c0166f;--dark:#0d0d0d;--card:#161616;--card2:#1c1c1c;--white:#f5f5f0;--grey:rgba(245,245,240,.52);--purple:#a855f7;--border:rgba(191,255,60,.12)}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}html{scroll-behavior:smooth}
 body{background:var(--dark);color:var(--white);font-family:'DM Sans',sans-serif;overflow-x:hidden;min-height:100vh;display:flex;flex-direction:column}
 a{text-decoration:none;color:inherit}ul{list-style:none}
-.pk{color:var(--pink)}.lm{color:var(--lime)}
 .smoke-wrap{position:fixed;inset:0;pointer-events:none;z-index:0;overflow:hidden}
 .puff{position:absolute;border-radius:50%;background:radial-gradient(circle,rgba(191,255,60,.04) 0%,transparent 70%);animation:floatUp linear infinite;bottom:-200px}
 @keyframes floatUp{0%{transform:translateY(0) scale(1);opacity:0}10%{opacity:1}90%{opacity:.2}100%{transform:translateY(-110vh) scale(2.5);opacity:0}}
-nav{position:fixed;top:0;left:0;right:0;z-index:900;display:flex;align-items:center;justify-content:space-between;padding:0 36px;height:70px;background:rgba(13,13,13,.94);border-bottom:1px solid var(--border);backdrop-filter:blur(18px);transition:background .3s}
+nav{position:fixed;top:0;left:0;right:0;z-index:900;display:flex;align-items:center;justify-content:space-between;padding:0 36px;height:70px;background:rgba(13,13,13,.94);border-bottom:1px solid var(--border);backdrop-filter:blur(18px)}
 .nav-logo{display:flex;align-items:center;gap:10px;text-decoration:none}
-.nav-logo img{height:46px;width:46px;object-fit:cover;border-radius:50%;filter:drop-shadow(0 0 8px rgba(191,255,60,.5));transition:filter .3s;flex-shrink:0}
-.nav-logo img:hover{filter:drop-shadow(0 0 14px rgba(191,255,60,.8))}
+.nav-logo img{height:46px;width:46px;object-fit:cover;border-radius:50%;filter:drop-shadow(0 0 8px rgba(191,255,60,.5));flex-shrink:0}
 .nav-logo-txt{font-family:'Bebas Neue';font-size:1.6rem;letter-spacing:3px;color:var(--lime)}
 .nav-logo-txt span{color:var(--pink)}
 .nav-links{display:flex;gap:18px;align-items:center}
 .nav-links a{color:var(--grey);font-size:.62rem;letter-spacing:2px;text-transform:uppercase;font-weight:600;transition:color .2s}
 .nav-links a:hover{color:var(--white)}
-.nav-cta{background:var(--pink)!important;color:#fff!important;padding:7px 16px;border-radius:3px;transition:background .2s!important}
-.nav-cta:hover{background:var(--pink-d)!important}
+.nav-cta{background:var(--pink)!important;color:#fff!important;padding:7px 16px;border-radius:3px}
 .nav-burger{display:none;background:none;border:none;color:var(--white);font-size:1.5rem;cursor:pointer}
-.mobile-menu{position:fixed;inset:0;z-index:850;background:rgba(13,13,13,.98);padding:86px 32px 40px;flex-direction:column;display:none;backdrop-filter:blur(20px)}
+.mobile-menu{position:fixed;inset:0;z-index:850;background:rgba(13,13,13,.98);padding:86px 32px 40px;flex-direction:column;display:none}
 .mobile-menu.open{display:flex}
 .mobile-menu ul{display:flex;flex-direction:column}
 .mobile-menu li a{display:block;font-family:'Bebas Neue';font-size:2rem;letter-spacing:3px;padding:14px 0;border-bottom:1px solid var(--border);color:var(--white);transition:color .2s}
 .mobile-menu li a:hover{color:var(--lime)}
 .mobile-close{position:absolute;top:20px;right:24px;background:none;border:none;color:var(--white);font-size:2rem;cursor:pointer}
-.checker{height:14px;background-image:repeating-linear-gradient(90deg,var(--lime) 0,var(--lime) 14px,var(--pink) 14px,var(--pink) 28px);opacity:.75}
-.checker.alt{background-image:repeating-linear-gradient(90deg,var(--pink) 0,var(--pink) 14px,var(--lime) 14px,var(--lime) 28px)}
-.btn-primary{background:var(--lime);color:var(--dark);font-family:'Bebas Neue';font-size:1rem;letter-spacing:3px;padding:14px 32px;border:none;cursor:pointer;border-radius:3px;transition:all .2s;display:inline-block;text-align:center}
-.btn-primary:hover{background:#d4ff5c;transform:translateY(-2px);box-shadow:0 8px 26px rgba(191,255,60,.25)}
-.btn-pink{background:var(--pink);color:#fff;font-family:'Bebas Neue';font-size:1rem;letter-spacing:3px;padding:14px 32px;border:none;cursor:pointer;border-radius:3px;transition:all .2s;display:inline-block;text-align:center}
-.btn-pink:hover{background:var(--pink-d);transform:translateY(-2px)}
-.btn-outline{background:transparent;border:1.5px solid rgba(245,245,240,.2);color:var(--white);font-family:'DM Sans';font-size:.74rem;letter-spacing:2px;text-transform:uppercase;font-weight:700;padding:12px 20px;border-radius:3px;cursor:pointer;transition:all .2s;display:inline-block;text-align:center}
-.btn-outline:hover{border-color:var(--white)}
-.container{max-width:1100px;margin:0 auto;padding:0 40px}
-.section-label{display:block;font-size:.6rem;letter-spacing:4px;text-transform:uppercase;font-weight:700;color:var(--lime);margin-bottom:12px}
-.section-title{font-family:'Bebas Neue';font-size:clamp(2.2rem,5vw,3.4rem);letter-spacing:3px;line-height:1;margin-bottom:28px}
-footer{background:#080808;border-top:1px solid var(--border);position:relative;z-index:10;margin-top:auto}
-.footer-inner{max-width:1100px;margin:0 auto;padding:52px 40px 32px;display:grid;grid-template-columns:1fr auto;gap:52px}
-.footer-brand{display:flex;align-items:center;gap:12px;margin-bottom:8px}
-.footer-brand img{height:46px;width:46px;border-radius:50%;object-fit:cover;filter:drop-shadow(0 0 6px rgba(191,255,60,.35))}
-.footer-logo-txt{font-family:'Bebas Neue';font-size:1.8rem;letter-spacing:3px;color:var(--lime)}
-.footer-est{font-size:.6rem;letter-spacing:2px;color:var(--grey);margin-bottom:14px}
-.footer-social{display:flex;gap:16px;flex-wrap:wrap}
-.footer-social a{color:var(--grey);font-size:.7rem;letter-spacing:1.5px;transition:color .2s}
-.footer-social a:hover{color:var(--lime)}
-.footer-links-group{display:flex;gap:44px}
-.fl-col{display:flex;flex-direction:column;gap:10px}
-.fl-head{font-size:.57rem;letter-spacing:3px;text-transform:uppercase;font-weight:700;color:var(--lime);margin-bottom:4px}
-.fl-col a{color:var(--grey);font-size:.76rem;transition:color .2s}
-.fl-col a:hover{color:var(--white)}
-.footer-copy{text-align:center;padding:16px 40px 20px;font-size:.58rem;letter-spacing:1.5px;color:rgba(245,245,240,.16);border-top:1px solid var(--border)}
-.form-group{margin-bottom:16px}
-.form-group label{display:block;font-size:.63rem;letter-spacing:2px;text-transform:uppercase;font-weight:600;color:var(--grey);margin-bottom:7px}
-.form-group input,.form-group select{width:100%;background:rgba(255,255,255,.04);border:1.5px solid rgba(191,255,60,.15);color:var(--white);font-family:'DM Sans';font-size:.88rem;padding:12px 13px;border-radius:3px;outline:none;transition:border-color .2s,box-shadow .2s}
-.form-group input:focus,.form-group select:focus{border-color:var(--lime);box-shadow:0 0 0 3px rgba(191,255,60,.1)}
-.form-group input::placeholder{color:rgba(245,245,240,.2)}
-.form-group select{cursor:pointer}.form-group select option{background:#1a1a1a;color:var(--white)}
-.form-hint{font-size:.67rem;color:rgba(245,245,240,.28);margin-top:4px;line-height:1.5}
-.form-err{font-size:.67rem;color:var(--pink);margin-top:4px;display:none}
-.form-err.show{display:block}
-.auth-submit{width:100%;background:var(--lime);color:var(--dark);font-family:'DM Sans';font-size:.78rem;letter-spacing:3px;text-transform:uppercase;font-weight:700;padding:14px;border:none;cursor:pointer;border-radius:3px;transition:box-shadow .2s,transform .15s}
-.auth-submit:hover{box-shadow:0 8px 30px rgba(191,255,60,.35);transform:translateY(-1px)}
-.auth-submit.pink-btn{background:var(--pink);color:#fff}
-.auth-submit.pink-btn:hover{box-shadow:0 8px 30px rgba(233,30,140,.35)}
-.auth-submit.ghost-btn{background:transparent;border:1.5px solid rgba(255,255,255,.18);color:var(--white)}
-.auth-submit.ghost-btn:hover{border-color:var(--white);box-shadow:none;transform:none}
-.auth-submit.loading{opacity:.6;pointer-events:none}
-@media(max-width:960px){nav{padding:0 20px}.nav-links{display:none}.nav-logo-txt{display:none}.nav-burger{display:block}.footer-inner{grid-template-columns:1fr;gap:28px}.footer-links-group{flex-wrap:wrap;gap:22px}}
-@media(max-width:600px){.container{padding:0 18px}}
-@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
-
-/* DASHBOARD */
+/* GATE */
 .gate{flex:1;display:flex;align-items:center;justify-content:center;flex-direction:column;gap:20px;text-align:center;padding:40px;position:relative;z-index:1}
 .gate h2{font-family:'Bebas Neue';font-size:2.5rem;letter-spacing:3px;color:var(--lime)}
 .gate p{color:var(--grey);font-size:.9rem;max-width:380px;line-height:1.7}
 .gate-btns{display:flex;gap:14px;flex-wrap:wrap;justify-content:center;margin-top:8px}
+.btn-lime{background:var(--lime);color:var(--dark);font-family:'DM Sans';font-size:.78rem;letter-spacing:3px;text-transform:uppercase;font-weight:700;padding:14px 28px;border-radius:3px;border:none;cursor:pointer;transition:box-shadow .2s;display:inline-block}
+.btn-lime:hover{box-shadow:0 8px 30px rgba(191,255,60,.35)}
+.btn-outline{background:transparent;border:1.5px solid rgba(245,245,240,.2);color:var(--white);font-family:'DM Sans';font-size:.78rem;letter-spacing:3px;text-transform:uppercase;font-weight:700;padding:14px 28px;border-radius:3px;cursor:pointer;transition:border-color .2s;display:inline-block}
+.btn-outline:hover{border-color:var(--white)}
+/* DASHBOARD */
 .dashboard{display:none;flex:1;padding:96px 0 80px;position:relative;z-index:1}
 .dashboard.show{display:block}
 .dash-container{max-width:1100px;margin:0 auto;padding:0 40px}
-/* WELCOME BANNER */
 .welcome-banner{background:linear-gradient(135deg,rgba(191,255,60,.08),rgba(233,30,140,.05));border:1px solid rgba(191,255,60,.2);border-radius:10px;padding:36px 44px;margin-bottom:36px;display:flex;align-items:center;justify-content:space-between;gap:28px;flex-wrap:wrap;position:relative;overflow:hidden}
 .welcome-banner::before{content:'';position:absolute;top:0;right:0;width:280px;height:280px;background:radial-gradient(circle,rgba(191,255,60,.05),transparent 70%);pointer-events:none}
 .wb-left h1{font-family:'Bebas Neue';font-size:2.6rem;letter-spacing:3px;line-height:1;margin-bottom:6px}
 .wb-left h1 span{color:var(--lime)}
 .wb-left p{font-size:.86rem;color:var(--grey);line-height:1.6}
 .member-card{background:linear-gradient(135deg,#1a2a0a,#111);border:2px solid rgba(191,255,60,.35);border-radius:8px;padding:20px 26px;min-width:210px;text-align:center;position:relative;overflow:hidden;flex-shrink:0}
-.member-card::before{content:'MK';position:absolute;right:-8px;top:-8px;font-family:'Bebas Neue';font-size:5rem;color:rgba(191,255,60,.05);letter-spacing:2px;line-height:1}
+.member-card::before{content:'MK';position:absolute;right:-8px;top:-8px;font-family:'Bebas Neue';font-size:5rem;color:rgba(191,255,60,.05);line-height:1}
 .mc-logo{width:40px;height:40px;border-radius:50%;object-fit:cover;margin:0 auto 8px;filter:drop-shadow(0 0 6px rgba(191,255,60,.4))}
 .mc-code{font-family:'Bebas Neue';font-size:1.2rem;letter-spacing:4px;color:var(--lime);margin-bottom:4px}
 .mc-name{font-size:.74rem;color:var(--white);font-weight:600;margin-bottom:8px}
 .mc-tier{display:inline-block;font-size:.54rem;letter-spacing:2px;text-transform:uppercase;font-weight:700;padding:3px 10px;border-radius:2px;background:var(--lime);color:var(--dark)}
 .mc-tier.vip{background:var(--pink);color:#fff}.mc-tier.silver{background:#aab0c0}.mc-tier.bronze{background:#cd7f32}
-/* STATS */
 .stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:36px}
 .stat-card{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:22px 20px;transition:border-color .2s,transform .2s}
 .stat-card:hover{border-color:rgba(191,255,60,.3);transform:translateY(-3px)}
 .sc-icon{font-size:1.7rem;margin-bottom:10px}
 .sc-val{font-family:'Bebas Neue';font-size:2.2rem;letter-spacing:2px;line-height:1;color:var(--lime);margin-bottom:4px}
-.sc-val.pink{color:var(--pink)}.sc-val.purple{color:var(--purple)}.sc-val.white{color:var(--white)}
+.sc-val.pink{color:var(--pink)}.sc-val.purple{color:var(--purple)}
 .sc-label{font-size:.6rem;letter-spacing:2px;text-transform:uppercase;color:var(--grey);font-weight:700;margin-bottom:2px}
 .sc-sub{font-size:.68rem;color:rgba(245,245,240,.3)}
-/* TIER PROGRESS */
 .tier-progress{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:26px 30px;margin-bottom:36px}
 .tp-header{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:18px;flex-wrap:wrap;gap:10px}
 .tp-title{font-family:'Bebas Neue';font-size:1.4rem;letter-spacing:2px}
@@ -122,27 +74,22 @@ footer{background:#080808;border-top:1px solid var(--border);position:relative;z
 .progress-fill-bar{height:100%;background:linear-gradient(90deg,var(--lime),#d4ff5c);border-radius:4px;transition:width 1.2s ease}
 .progress-meta{display:flex;justify-content:space-between;font-size:.68rem;color:var(--grey)}
 .progress-meta span{color:var(--lime);font-weight:700}
-/* SECTION HDR */
 .section-hdr{display:flex;align-items:baseline;justify-content:space-between;margin-bottom:20px;flex-wrap:wrap;gap:10px}
 .section-hdr h2{font-family:'Bebas Neue';font-size:1.7rem;letter-spacing:2px}
-.section-hdr a{font-size:.63rem;letter-spacing:2px;text-transform:uppercase;color:var(--lime);font-weight:700;transition:opacity .2s}
-.section-hdr a:hover{opacity:.7}
-/* ACTIONS */
+.section-hdr a{font-size:.63rem;letter-spacing:2px;text-transform:uppercase;color:var(--lime);font-weight:700}
 .actions-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:36px}
 .action-card{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:20px 16px;text-align:center;cursor:pointer;transition:border-color .2s,transform .2s,background .2s;text-decoration:none;display:block;color:var(--white)}
 .action-card:hover{border-color:rgba(191,255,60,.4);transform:translateY(-4px);background:var(--card2)}
 .ac-icon{font-size:1.9rem;margin-bottom:8px}
 .ac-label{font-family:'Bebas Neue';font-size:.95rem;letter-spacing:1px;color:var(--lime);margin-bottom:3px}
 .ac-sub{font-size:.68rem;color:var(--grey)}
-/* PERKS */
 .perks-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:36px}
-.perk-card{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:20px 22px;display:flex;gap:14px;align-items:flex-start;transition:border-color .2s}
+.perk-card{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:20px 22px;display:flex;gap:14px;transition:border-color .2s}
 .perk-card:hover{border-color:rgba(191,255,60,.25)}
 .pk-icon{font-size:1.5rem;flex-shrink:0}
 .pk-name{font-family:'Bebas Neue';font-size:1.05rem;letter-spacing:1px;color:var(--lime);margin-bottom:3px}
 .pk-desc{font-size:.74rem;color:var(--grey);line-height:1.5}
 .pk-badge{display:inline-block;margin-top:7px;font-size:.54rem;letter-spacing:2px;text-transform:uppercase;font-weight:700;padding:2px 8px;background:rgba(191,255,60,.12);color:var(--lime);border-radius:2px;border:1px solid rgba(191,255,60,.2)}
-/* ACTIVITY */
 .activity-list{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden;margin-bottom:36px}
 .activity-row{display:flex;align-items:center;gap:14px;padding:15px 20px;border-bottom:1px solid rgba(255,255,255,.05);transition:background .2s}
 .activity-row:last-child{border-bottom:none}
@@ -152,47 +99,46 @@ footer{background:#080808;border-top:1px solid var(--border);position:relative;z
 .ar-action{font-size:.8rem;color:var(--white);font-weight:600;margin-bottom:2px}
 .ar-date{font-size:.66rem;color:rgba(245,245,240,.3)}
 .ar-pts{font-family:'Bebas Neue';font-size:1.15rem;letter-spacing:1px;color:var(--lime);flex-shrink:0}
-/* EVENTS */
-.events-list{display:grid;grid-template-columns:repeat(2,1fr);gap:14px;margin-bottom:36px}
-.event-card{background:var(--card);border:1px solid var(--border);border-radius:6px;padding:20px 22px;display:flex;gap:16px;transition:border-color .2s}
-.event-card:hover{border-color:rgba(191,255,60,.25)}
-.ev-date{text-align:center;flex-shrink:0;background:rgba(191,255,60,.08);border:1px solid rgba(191,255,60,.15);border-radius:4px;padding:10px 12px}
-.ev-day{font-family:'Bebas Neue';font-size:1.7rem;letter-spacing:1px;color:var(--lime);line-height:1}
-.ev-month{font-size:.56rem;letter-spacing:2px;text-transform:uppercase;color:var(--grey)}
-.ev-name{font-family:'Bebas Neue';font-size:1.05rem;letter-spacing:1px;margin-bottom:4px}
-.ev-loc{font-size:.7rem;color:var(--grey);margin-bottom:9px}
-.ev-tag{font-size:.54rem;letter-spacing:2px;text-transform:uppercase;font-weight:700;padding:3px 9px;border-radius:2px}
-.ev-tag.conf{background:rgba(191,255,60,.12);color:var(--lime);border:1px solid rgba(191,255,60,.2)}
-.ev-tag.rsvp{background:rgba(233,30,140,.12);color:var(--pink);border:1px solid rgba(233,30,140,.2)}
-/* NAV MEMBER INFO */
-.nav-member-info{display:none;align-items:center;gap:10px}
-.nav-avatar{width:34px;height:34px;border-radius:50%;overflow:hidden;border:2px solid var(--lime);flex-shrink:0}
-.nav-avatar img{width:100%;height:100%;object-fit:cover}
-.nav-member-name{font-size:.62rem;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;color:var(--lime)}
-.nav-tier-badge{font-size:.54rem;letter-spacing:2px;text-transform:uppercase;font-weight:700;padding:2px 8px;border-radius:2px;background:var(--lime);color:var(--dark)}
-.nav-tier-badge.vip{background:var(--pink);color:#fff}
-/* SIGNOUT */
+.ar-pts.dim{color:var(--grey)}
 .signout-bar{text-align:center;padding:16px 0 40px}
 .signout-btn{background:none;border:1px solid rgba(245,245,240,.1);color:rgba(245,245,240,.35);font-family:'DM Sans';font-size:.63rem;letter-spacing:2px;text-transform:uppercase;font-weight:600;padding:10px 24px;border-radius:3px;cursor:pointer;transition:all .2s}
 .signout-btn:hover{border-color:var(--pink);color:var(--pink)}
-@media(max-width:900px){.stats-row{grid-template-columns:1fr 1fr}.actions-grid{grid-template-columns:1fr 1fr}.perks-grid,.events-list{grid-template-columns:1fr}}
-@media(max-width:500px){.dash-container{padding:0 18px}.welcome-banner{padding:24px 20px}.stats-row{grid-template-columns:1fr 1fr}}
+.loading-state{text-align:center;padding:60px;color:var(--grey);font-size:.85rem}
+.loading-spinner{width:36px;height:36px;border:3px solid rgba(191,255,60,.15);border-top-color:var(--lime);border-radius:50%;animation:spin .8s linear infinite;margin:0 auto 16px}
+@keyframes spin{to{transform:rotate(360deg)}}
+footer{background:#080808;border-top:1px solid var(--border);margin-top:auto}
+.footer-inner{max-width:1100px;margin:0 auto;padding:48px 40px 28px;display:grid;grid-template-columns:1fr auto;gap:48px}
+.footer-brand{display:flex;align-items:center;gap:12px;margin-bottom:8px}
+.footer-brand img{height:44px;width:44px;border-radius:50%;object-fit:cover}
+.footer-logo-txt{font-family:'Bebas Neue';font-size:1.7rem;letter-spacing:3px;color:var(--lime)}
+.footer-est{font-size:.6rem;letter-spacing:2px;color:var(--grey);margin-bottom:12px}
+.footer-social{display:flex;gap:14px}
+.footer-social a{color:var(--grey);font-size:.7rem;transition:color .2s}
+.footer-social a:hover{color:var(--lime)}
+.footer-links-group{display:flex;gap:40px}
+.fl-col{display:flex;flex-direction:column;gap:9px}
+.fl-head{font-size:.56rem;letter-spacing:3px;text-transform:uppercase;font-weight:700;color:var(--lime);margin-bottom:3px}
+.fl-col a{color:var(--grey);font-size:.74rem;transition:color .2s}
+.fl-col a:hover{color:var(--white)}
+.footer-copy{text-align:center;padding:14px 40px 18px;font-size:.57rem;letter-spacing:1.5px;color:rgba(245,245,240,.15);border-top:1px solid var(--border)}
+.checker.alt{height:14px;background-image:repeating-linear-gradient(90deg,var(--pink) 0,var(--pink) 14px,var(--lime) 14px,var(--lime) 28px);opacity:.75}
+@media(max-width:900px){.stats-row{grid-template-columns:1fr 1fr}.actions-grid{grid-template-columns:1fr 1fr}.perks-grid{grid-template-columns:1fr}}
+@media(max-width:960px){nav{padding:0 20px}.nav-links{display:none}.nav-logo-txt{display:none}.nav-burger{display:block}.footer-inner{grid-template-columns:1fr}.footer-links-group{flex-wrap:wrap;gap:20px}}
+@media(max-width:500px){.dash-container{padding:0 18px}.welcome-banner{padding:24px 20px}}
+@keyframes fadeUp{from{opacity:0;transform:translateY(20px)}to{opacity:1;transform:translateY(0)}}
 </style>
 </head>
 <body>
 <div class="smoke-wrap" id="smokeWrap"></div>
 <nav id="nav">
-  <a href="index.html" class="nav-logo"><img src="data:image/webp;base64,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" alt="MadaKop Logo"><span class="nav-logo-txt">MadaKop<span>.</span></span></a>
-  <ul class="nav-links" id="navLinks">
+  <a href="index.html" class="nav-logo"><img src="data:image/webp;base64,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" alt="MadaKop"><span class="nav-logo-txt">MadaKop<span>.</span></span></a>
+  <ul class="nav-links">
     <li><a href="index.html#products">Shop</a></li>
     <li><a href="rewards.html">Rewards</a></li>
     <li><a href="strain-finder.html">Strain Finder</a></li>
     <li><a href="tutorials.html">Tutorials</a></li>
-    <li class="nav-member-info" id="navMemberInfo">
-      <div class="nav-avatar"><img src="data:image/webp;base64,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" alt="M" id="navAvatarImg"></div>
-      <div><div class="nav-member-name" id="navMemberName">Member</div><div class="nav-tier-badge" id="navTierBadge">Bronze</div></div>
-    </li>
-    <li id="navLoginLi"><a href="login.html">Login</a></li>
+    <li><a href="login.html">Members</a></li>
+    <li><a href="register.html" class="nav-cta">Register</a></li>
   </ul>
   <button class="nav-burger" onclick="toggleMenu()">☰</button>
 </nav>
@@ -201,28 +147,28 @@ footer{background:#080808;border-top:1px solid var(--border);position:relative;z
   <ul>
     <li><a href="index.html#products" onclick="toggleMenu()">Shop</a></li>
     <li><a href="rewards.html" onclick="toggleMenu()">Rewards</a></li>
-    <li><a href="strain-finder.html" onclick="toggleMenu()">Strain Finder</a></li>
     <li><a href="tutorials.html" onclick="toggleMenu()">Tutorials</a></li>
-    <li><a href="login.html" onclick="toggleMenu()">Login / Members</a></li>
+    <li><a href="login.html" onclick="toggleMenu()">Members</a></li>
+    <li><a href="register.html" onclick="toggleMenu()">Register Now</a></li>
   </ul>
 </div>
 
-<!-- NOT LOGGED IN -->
 <div class="gate" id="gate" style="display:none">
   <div style="font-size:3rem">🔒</div>
   <h2>Members Only</h2>
-  <p>This area is exclusive to registered MadaKop members. Sign in with your membership code to access your dashboard.</p>
+  <p>This area is for registered MadaKop members. Sign in with your membership code to access your dashboard.</p>
   <div class="gate-btns">
-    <a href="login.html" class="btn-primary">Sign In →</a>
+    <a href="login.html" class="btn-lime">Sign In →</a>
     <a href="register.html" class="btn-outline">Register Free</a>
   </div>
 </div>
 
-<!-- DASHBOARD -->
 <div class="dashboard" id="dashboard">
   <div class="dash-container">
+    <div id="loadingState" class="loading-state"><div class="loading-spinner"></div>Loading your dashboard...</div>
+
     <!-- WELCOME -->
-    <div class="welcome-banner" style="animation:fadeUp .5s ease">
+    <div class="welcome-banner" id="welcomeBanner" style="display:none;animation:fadeUp .5s ease">
       <div class="wb-left">
         <h1>WELCOME BACK,<br><span id="dashName">MEMBER</span></h1>
         <p id="dashSubtitle">You're logged in to your MadaKop members dashboard.</p>
@@ -236,15 +182,15 @@ footer{background:#080808;border-top:1px solid var(--border);position:relative;z
     </div>
 
     <!-- STATS -->
-    <div class="stats-row">
+    <div class="stats-row" id="statsRow" style="display:none">
       <div class="stat-card"><div class="sc-icon">⭐</div><div class="sc-val" id="statPts">0</div><div class="sc-label">MK Points</div><div class="sc-sub">Available to redeem</div></div>
       <div class="stat-card"><div class="sc-icon">🏆</div><div class="sc-val pink" id="statTier">Bronze</div><div class="sc-label">Current Tier</div><div class="sc-sub">Loyalty level</div></div>
-      <div class="stat-card"><div class="sc-icon">🛍️</div><div class="sc-val white">R0</div><div class="sc-label">Total Saved</div><div class="sc-sub">Via member discounts</div></div>
-      <div class="stat-card"><div class="sc-icon">🎟️</div><div class="sc-val purple">0</div><div class="sc-label">Events Attended</div><div class="sc-sub">This year</div></div>
+      <div class="stat-card"><div class="sc-icon">📅</div><div class="sc-val white" id="statJoined">—</div><div class="sc-label">Member Since</div><div class="sc-sub">MadaKop family</div></div>
+      <div class="stat-card"><div class="sc-icon">📋</div><div class="sc-val purple" id="statTxns">0</div><div class="sc-label">Point Transactions</div><div class="sc-sub">Lifetime activity</div></div>
     </div>
 
     <!-- TIER PROGRESS -->
-    <div class="tier-progress">
+    <div class="tier-progress" id="tierProgressEl" style="display:none">
       <div class="tp-header">
         <div><div class="tp-title">Progress to Next Tier</div><div class="tp-subtitle" id="tpSub">Earn more points to level up</div></div>
         <div class="tp-tiers"><div class="tp-tier current" id="tpCurrent">Bronze</div><span style="color:var(--grey);margin:0 4px">→</span><div class="tp-tier next" id="tpNext">Silver</div></div>
@@ -254,8 +200,8 @@ footer{background:#080808;border-top:1px solid var(--border);position:relative;z
     </div>
 
     <!-- QUICK ACTIONS -->
-    <div class="section-hdr"><h2>Quick Actions</h2></div>
-    <div class="actions-grid">
+    <div class="section-hdr" id="actionsHdr" style="display:none"><h2>Quick Actions</h2></div>
+    <div class="actions-grid" id="actionsGrid" style="display:none">
       <a href="index.html#products" class="action-card"><div class="ac-icon">🛍️</div><div class="ac-label">Shop Now</div><div class="ac-sub">Browse the full menu</div></a>
       <a href="rewards.html" class="action-card"><div class="ac-icon">🎁</div><div class="ac-label">Redeem Points</div><div class="ac-sub">Spend your MK Points</div></a>
       <a href="strain-finder.html" class="action-card"><div class="ac-icon">🌿</div><div class="ac-label">Strain Finder</div><div class="ac-sub">Find your perfect match</div></a>
@@ -263,33 +209,21 @@ footer{background:#080808;border-top:1px solid var(--border);position:relative;z
     </div>
 
     <!-- PERKS -->
-    <div class="section-hdr"><h2>Your Active Perks</h2><a href="rewards.html">View all rewards →</a></div>
-    <div class="perks-grid">
-      <div class="perk-card"><div class="pk-icon">🌿</div><div><div class="pk-name">Early Drop Alerts</div><div class="pk-desc">First to know when new strains and limited products drop — before the public.</div><span class="pk-badge">Active</span></div></div>
-      <div class="perk-card"><div class="pk-icon">🎂</div><div><div class="pk-name">Birthday Bonus</div><div class="pk-desc">500 free MK Points drop in your birthday month automatically.</div><span class="pk-badge">Active</span></div></div>
-      <div class="perk-card"><div class="pk-icon">📣</div><div><div class="pk-name">Referral Rewards</div><div class="pk-desc">Earn 200 MK Points for every friend you refer who registers as a member.</div><span class="pk-badge">Active</span></div></div>
-      <div class="perk-card"><div class="pk-icon">🎟️</div><div><div class="pk-name">Event Priority Access</div><div class="pk-desc">Skip the general waitlist. Members get first access to all MadaKop events.</div><span class="pk-badge">Active</span></div></div>
+    <div class="section-hdr" id="perksHdr" style="display:none"><h2>Your Active Perks</h2><a href="rewards.html">View all →</a></div>
+    <div class="perks-grid" id="perksGrid" style="display:none">
+      <div class="perk-card"><div class="pk-icon">🌿</div><div><div class="pk-name">Early Drop Alerts</div><div class="pk-desc">First to know when new strains and limited products drop.</div><span class="pk-badge">Active</span></div></div>
+      <div class="perk-card"><div class="pk-icon">🎂</div><div><div class="pk-name">Birthday Bonus</div><div class="pk-desc">500 free MK Points drop automatically in your birthday month.</div><span class="pk-badge">Active</span></div></div>
+      <div class="perk-card"><div class="pk-icon">📣</div><div><div class="pk-name">Referral Rewards</div><div class="pk-desc">Earn 200 MK Points for every friend you refer who registers.</div><span class="pk-badge">Active</span></div></div>
+      <div class="perk-card"><div class="pk-icon">🎟️</div><div><div class="pk-name">Event Priority</div><div class="pk-desc">Skip the general waitlist. Members get first access to all events.</div><span class="pk-badge">Active</span></div></div>
     </div>
 
-    <!-- ACTIVITY -->
-    <div class="section-hdr"><h2>Points Activity</h2></div>
-    <div class="activity-list">
-      <div class="activity-row"><div class="ar-icon">🎉</div><div class="ar-main"><div class="ar-action">Welcome Bonus — Account Created</div><div class="ar-date">Today · Auto-credited</div></div><div class="ar-pts">+50 pts</div></div>
-      <div class="activity-row"><div class="ar-icon">🌿</div><div class="ar-main"><div class="ar-action">Complete the Strain Finder Quiz</div><div class="ar-date">Earn 30 pts — visit Strain Finder</div></div><div class="ar-pts" style="color:var(--grey)">+30 pts</div></div>
-      <div class="activity-row"><div class="ar-icon">📸</div><div class="ar-main"><div class="ar-action">Follow @madakop_ on Instagram</div><div class="ar-date">Earn 25 pts — DM us a screenshot to claim</div></div><div class="ar-pts" style="color:var(--grey)">+25 pts</div></div>
-      <div class="activity-row"><div class="ar-icon">🛍️</div><div class="ar-main"><div class="ar-action">Make your first purchase</div><div class="ar-date">Points auto-credited per R10 spent</div></div><div class="ar-pts" style="color:var(--grey)">+1–3/R10</div></div>
-    </div>
+    <!-- POINTS LOG (live from DB) -->
+    <div class="section-hdr" id="activityHdr" style="display:none"><h2>Points Activity</h2></div>
+    <div class="activity-list" id="activityList" style="display:none"></div>
 
-    <!-- EVENTS -->
-    <div class="section-hdr"><h2>Upcoming Events</h2><a href="index.html#events">See all →</a></div>
-    <div class="events-list">
-      <div class="event-card"><div class="ev-date"><div class="ev-day">12</div><div class="ev-month">Apr</div></div><div><div class="ev-name">Spring Pop-Up Market</div><div class="ev-loc">📍 Small Farm, Evaton · 12PM–8PM</div><span class="ev-tag conf">Member Access ✓</span></div></div>
-      <div class="event-card"><div class="ev-date"><div class="ev-day">20</div><div class="ev-month">Apr</div></div><div><div class="ev-name">4/20 Block Party 2025</div><div class="ev-loc">📍 Sebokeng Venue · All Day</div><span class="ev-tag rsvp">RSVP Open →</span></div></div>
-      <div class="event-card"><div class="ev-date"><div class="ev-day">03</div><div class="ev-month">May</div></div><div><div class="ev-name">Live Music Night</div><div class="ev-loc">📍 MK HQ · 6PM–Late</div><span class="ev-tag conf">Priority Access ✓</span></div></div>
-      <div class="event-card"><div class="ev-date"><div class="ev-day">17</div><div class="ev-month">May</div></div><div><div class="ev-name">Blunt Rolling Workshop</div><div class="ev-loc">📍 Small Farm · 2PM–5PM</div><span class="ev-tag rsvp">Register →</span></div></div>
+    <div class="signout-bar" id="signoutBar" style="display:none">
+      <button class="signout-btn" onclick="signOut()">Sign Out of Members Area</button>
     </div>
-
-    <div class="signout-bar"><button class="signout-btn" onclick="signOut()">Sign Out of Members Area</button></div>
   </div>
 </div>
 
@@ -301,90 +235,138 @@ footer{background:#080808;border-top:1px solid var(--border);position:relative;z
       <div class="footer-est">Healing Hub · Private Cannabis Club · Est. 2025 · One Love 🌿</div>
       <div class="footer-social">
         <a href="https://instagram.com/madakop_" target="_blank">📸 @madakop_</a>
-        <a href="https://facebook.com" target="_blank">📘 Mada Kop</a>
         <a href="tel:0736292224">📞 073 629 2224</a>
       </div>
     </div>
     <div class="footer-links-group">
-      <div class="fl-col"><div class="fl-head">Shop</div><a href="index.html#products">Browse Menu</a><a href="strain-finder.html">Strain Finder</a><a href="tutorials.html">Tutorials</a></div>
-      <div class="fl-col"><div class="fl-head">Club</div><a href="index.html#membership">Membership</a><a href="rewards.html">Rewards</a><a href="index.html#rules">Club Rules</a><a href="register.html">Register</a><a href="login.html">Members Login</a></div>
-      <div class="fl-col"><div class="fl-head">Contact</div><a href="tel:0736292224">073 629 2224</a><a href="tel:0652522668">065 252 2668</a><a href="index.html#delivery">Delivery Info</a></div>
+      <div class="fl-col"><div class="fl-head">Shop</div><a href="index.html#products">Browse Menu</a><a href="strain-finder.html">Strain Finder</a></div>
+      <div class="fl-col"><div class="fl-head">Club</div><a href="rewards.html">Rewards</a><a href="register.html">Register</a><a href="login.html">Login</a></div>
+      <div class="fl-col"><div class="fl-head">Contact</div><a href="tel:0736292224">073 629 2224</a><a href="tel:0652522668">065 252 2668</a></div>
     </div>
   </div>
   <div class="footer-copy">© 2025 MadaKop Healing Hub &amp; Private Club · 18+ Only · Small Farm, Evaton, Sebokeng</div>
 </footer>
+
 <script>
+// ── SUPABASE CONFIG ── Replace these two values with yours ──
+const SUPABASE_URL = 'https://rpufhpgftrmqavmyolwi.supabase.co';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJwdWZocGdmdHJtcWF2bXlvbHdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzOTUxNjAsImV4cCI6MjA4Nzk3MTE2MH0.hFRlsGNh_o_Oql-XigFOEh0WA_evL_Ja6OoUIUhzY38';
+// ────────────────────────────────────────────────────────────
+
+const { createClient } = supabase;
+const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
 (function(){const w=document.getElementById('smokeWrap');if(!w)return;for(let i=0;i<12;i++){const p=document.createElement('div');p.className='puff';const s=80+Math.random()*200;p.style.cssText=`width:${s}px;height:${s}px;left:${Math.random()*100}%;animation-duration:${14+Math.random()*18}s;animation-delay:${-Math.random()*26}s`;w.appendChild(p)}})();
 function toggleMenu(){document.getElementById('mobileMenu').classList.toggle('open')}
-window.addEventListener('scroll',()=>{if(document.getElementById('nav'))document.getElementById('nav').style.background=scrollY>40?'rgba(13,13,13,.99)':'rgba(13,13,13,.94)'});
 
 const tierConfig = {
-  Bronze:{next:'Silver',pts:0,needed:1000},
+  Basic:{next:'Silver',pts:0,needed:1000},
   Silver:{next:'Gold',pts:1000,needed:3000},
   Gold:{next:'VIP',pts:3000,needed:8000},
   VIP:{next:null,pts:8000,needed:null}
 };
 
-function loadDashboard(){
+function showEl(...ids){ids.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=''})}
+
+async function loadDashboard() {
   const loggedIn = sessionStorage.getItem('mk_logged_in');
   const raw = sessionStorage.getItem('mk_member');
-  if(loggedIn!=='true'||!raw){
-    document.getElementById('gate').style.display='flex';
+
+  if (loggedIn !== 'true' || !raw) {
+    document.getElementById('dashboard').classList.add('show');
+    document.getElementById('loadingState').style.display = 'none';
+    document.getElementById('gate').style.display = 'flex';
     return;
   }
-  const m = JSON.parse(raw);
-  const tier = m.tier||'Bronze';
-  const pts = m.points||50;
-  const firstName = m.name ? m.name.split(' ')[0] : 'Member';
-  const code = m.code||'MK-XXXXXX';
 
+  const session = JSON.parse(raw);
   document.getElementById('dashboard').classList.add('show');
 
-  // Nav member info
-  document.getElementById('navLoginLi').style.display='none';
-  const nmi = document.getElementById('navMemberInfo');
-  nmi.style.display='flex';
-  document.getElementById('navMemberName').textContent=firstName;
-  const badge=document.getElementById('navTierBadge');
-  badge.textContent=tier;badge.className='nav-tier-badge '+(tier==='VIP'?'vip':'');
+  try {
+    // Fetch fresh data from Supabase
+    const { data: m, error } = await db.from('members').select('*').eq('id', session.id).single();
+    if (error || !m) throw new Error('Member not found');
 
-  // Welcome
-  document.getElementById('dashName').textContent=firstName.toUpperCase();
-  document.getElementById('dashSubtitle').textContent=tier+' Member · '+code+' · Welcome back to the inner circle.';
-  document.getElementById('dashCode').textContent=code;
-  document.getElementById('dashMcName').textContent=m.name||'MK Member';
-  const mcTier=document.getElementById('dashMcTier');
-  mcTier.textContent=tier;mcTier.className='mc-tier '+(tier==='VIP'?'vip':tier==='Silver'?'silver':tier==='Bronze'?'bronze':'');
+    // Fetch points log
+    const { data: logs } = await db.from('points_log').select('*').eq('member_id', m.id).order('created_at', {ascending: false}).limit(10);
 
-  // Stats
-  document.getElementById('statPts').textContent=pts.toLocaleString();
-  document.getElementById('statTier').textContent=tier;
+    // Update session with fresh data
+    sessionStorage.setItem('mk_member', JSON.stringify({
+      id: m.id, name: m.first_name + ' ' + m.last_name,
+      email: m.email, tier: m.tier, code: m.code, points: m.points
+    }));
 
-  // Progress
-  const cfg=tierConfig[tier];
-  document.getElementById('tpCurrent').textContent=tier;
-  if(cfg.next){
-    document.getElementById('tpNext').textContent=cfg.next;
-    document.getElementById('tpSub').textContent=(cfg.needed-pts)+' more points to unlock '+cfg.next;
-    document.getElementById('ptsEarned').textContent=pts+' pts earned';
-    document.getElementById('ptsNeeded').textContent=cfg.needed.toLocaleString()+' pts needed for '+cfg.next;
-    const pct=Math.min(100,Math.max(0,((pts-cfg.pts)/(cfg.needed-cfg.pts))*100));
-    setTimeout(()=>document.getElementById('progressBar').style.width=pct+'%',400);
-  } else {
-    document.getElementById('tpNext').textContent='MAX 👑';
-    document.getElementById('tpSub').textContent='You've reached the highest tier. Legendary status.';
-    document.getElementById('ptsNeeded').textContent='Maximum tier unlocked';
-    document.getElementById('progressBar').style.width='100%';
+    const tier = m.tier;
+    const pts = m.points;
+
+    // Hide loading, show everything
+    document.getElementById('loadingState').style.display = 'none';
+    showEl('welcomeBanner','statsRow','tierProgressEl','actionsHdr','actionsGrid','perksHdr','perksGrid','activityHdr','activityList','signoutBar');
+
+    // Welcome banner
+    document.getElementById('dashName').textContent = m.first_name.toUpperCase();
+    document.getElementById('dashSubtitle').textContent = tier + ' Member · ' + m.code + ' · Welcome back to the inner circle.';
+    document.getElementById('dashCode').textContent = m.code;
+    document.getElementById('dashMcName').textContent = m.first_name + ' ' + m.last_name;
+    const mcTier = document.getElementById('dashMcTier');
+    mcTier.textContent = tier;
+    mcTier.className = 'mc-tier ' + (tier === 'VIP' ? 'vip' : tier === 'Silver' ? 'silver' : 'bronze');
+
+    // Stats
+    document.getElementById('statPts').textContent = pts.toLocaleString();
+    document.getElementById('statTier').textContent = tier;
+    document.getElementById('statJoined').textContent = new Date(m.created_at).toLocaleDateString('en-ZA', {month:'short',year:'numeric'});
+    document.getElementById('statTxns').textContent = logs ? logs.length : 0;
+
+    // Tier progress
+    const cfg = tierConfig[tier] || tierConfig['Basic'];
+    document.getElementById('tpCurrent').textContent = tier;
+    if (cfg.next) {
+      document.getElementById('tpNext').textContent = cfg.next;
+      document.getElementById('tpSub').textContent = (cfg.needed - pts) + ' more points to unlock ' + cfg.next;
+      document.getElementById('ptsEarned').textContent = pts + ' pts earned';
+      document.getElementById('ptsNeeded').textContent = cfg.needed.toLocaleString() + ' pts needed for ' + cfg.next;
+      const pct = Math.min(100, Math.max(0, ((pts - cfg.pts) / (cfg.needed - cfg.pts)) * 100));
+      setTimeout(() => document.getElementById('progressBar').style.width = pct + '%', 400);
+    } else {
+      document.getElementById('tpNext').textContent = 'MAX 👑';
+      document.getElementById('tpSub').textContent = 'You've reached the highest tier. Legendary.';
+      document.getElementById('ptsNeeded').textContent = 'Maximum tier unlocked';
+      document.getElementById('progressBar').style.width = '100%';
+    }
+
+    // Points log
+    const list = document.getElementById('activityList');
+    if (logs && logs.length > 0) {
+      list.innerHTML = logs.map(log => {
+        const d = new Date(log.created_at);
+        const dateStr = d.toLocaleDateString('en-ZA', {day:'numeric',month:'short',year:'numeric'});
+        const isPos = log.points > 0;
+        return `<div class="activity-row">
+          <div class="ar-icon">${isPos ? '⭐' : '🎁'}</div>
+          <div class="ar-main">
+            <div class="ar-action">${log.action}</div>
+            <div class="ar-date">${dateStr}${log.note ? ' · ' + log.note : ''}</div>
+          </div>
+          <div class="ar-pts ${isPos ? '' : 'dim'}">${isPos ? '+' : ''}${log.points} pts</div>
+        </div>`;
+      }).join('');
+    } else {
+      list.innerHTML = '<div class="activity-row"><div class="ar-icon">🌿</div><div class="ar-main"><div class="ar-action">Welcome to MadaKop!</div><div class="ar-date">Your points activity will appear here</div></div><div class="ar-pts">+50 pts</div></div>';
+    }
+
+  } catch (err) {
+    document.getElementById('loadingState').innerHTML = '<p style="color:var(--pink)">⚠️ Could not load dashboard. <a href="login.html" style="color:var(--lime)">Sign in again →</a></p>';
   }
 }
 
-function signOut(){
+function signOut() {
   sessionStorage.removeItem('mk_logged_in');
-  window.location.href='index.html';
+  sessionStorage.removeItem('mk_member');
+  window.location.href = 'index.html';
 }
 
-window.addEventListener('DOMContentLoaded',loadDashboard);
+window.addEventListener('DOMContentLoaded', loadDashboard);
 </script>
 </body>
 </html>
