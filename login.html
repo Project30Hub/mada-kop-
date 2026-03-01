@@ -171,7 +171,7 @@ footer{background:#080808;border-top:1px solid var(--border);margin-top:auto}
       <div class="logged-in-msg" id="successMsg">
         <div class="hi" id="hiName">Welcome back! 🌿</div>
         <p id="hiSub">Signed in successfully.</p>
-        <a href="members.html" class="go-members">Go to Members Dashboard →</a>
+        <a href="#" class="go-members" onclick="goToDashboard()">Go to Members Dashboard →</a>
       </div>
       <div class="divider" id="divEl">or</div>
       <div class="auth-links" id="linkEl"><a href="register.html">New here? <span>Register free →</span></a></div>
@@ -235,6 +235,8 @@ function showSuccess(m) {
   document.getElementById('hiName').textContent = 'Hey ' + m.first_name + '! 🌿';
   document.getElementById('hiSub').textContent = m.tier + ' Member · ' + m.points + ' MK Points · Welcome back to the circle.';
   document.getElementById('successMsg').classList.add('show');
+  // Store code for members.html redirect
+  if (m.code) sessionStorage.setItem('mk_code', m.code);
 }
 
 function saveSession(m) {
@@ -284,6 +286,15 @@ async function loginEmail() {
     status.textContent = '❌ ' + (e.message || 'Connection error.');
     status.className = 'db-status error';
     btn.textContent = 'Enter Members Area →'; btn.classList.remove('loading');
+  }
+}
+
+function goToDashboard() {
+  const code = sessionStorage.getItem('mk_code');
+  if (code) {
+    window.location.href = 'members.html?code=' + code;
+  } else {
+    window.location.href = 'members.html';
   }
 }
 

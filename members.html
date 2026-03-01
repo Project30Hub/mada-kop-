@@ -269,23 +269,31 @@ const tierConfig = {
 function showEl(...ids){ids.forEach(id=>{const el=document.getElementById(id);if(el)el.style.display=''})}
 
 async function loadDashboard() {
-  const loggedIn = sessionStorage.getItem('mk_logged_in');
-  const raw = sessionStorage.getItem('mk_member');
+  document.getElementById('dashboard').classList.add('show');
 
-  if (loggedIn !== 'true' || !raw) {
-    document.getElementById('dashboard').classList.add('show');
+  // Get code from URL param first, then sessionStorage
+  const urlParams = new URLSearchParams(window.location.search);
+  const urlCode = urlParams.get('code');
+  const sessionCode = sessionStorage.getItem('mk_code');
+  const code = urlCode || sessionCode;
+
+  if (!code) {
     document.getElementById('loadingState').style.display = 'none';
     document.getElementById('gate').style.display = 'flex';
     return;
   }
 
-  const session = JSON.parse(raw);
-  document.getElementById('dashboard').classList.add('show');
-
   try {
-    // Fetch fresh data from Supabase
-    const { data: m, error } = await db.from('members').select('*').eq('id', session.id).single();
-    if (error || !m) throw new Error('Member not found');
+    // Fetch fresh data from Supabase using code
+    const { data: m, error } = await db.from('members').select('*').eq('code', code).single();
+    if (error || !m) {
+      document.getElementById('loadingState').style.display = 'none';
+      document.getElementById('gate').style.display = 'flex';
+      return;
+    }
+    // Save to session for future use
+    sessionStorage.setItem('mk_code', m.code);
+    sessionStorage.setItem('mk_logged_in', 'true');
 
     // Fetch points log
     const { data: logs } = await db.from('points_log').select('*').eq('member_id', m.id).order('created_at', {ascending: false}).limit(10);
@@ -363,6 +371,7 @@ async function loadDashboard() {
 function signOut() {
   sessionStorage.removeItem('mk_logged_in');
   sessionStorage.removeItem('mk_member');
+  sessionStorage.removeItem('mk_code');
   window.location.href = 'index.html';
 }
 
