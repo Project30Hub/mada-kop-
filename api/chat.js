@@ -1,34 +1,25 @@
 // ============================================================
-//  MADAKOP CHATBOT — Vercel Edge Function Proxy
-//  This keeps your Claude API key secret on the server
+//  MADAKOP CHATBOT — Vercel Serverless Function
 //  File location: /api/chat.js in your GitHub repo
 // ============================================================
 
-export const config = { runtime: 'edge' };
+module.exports = async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'POST, OPTIONS');
+  res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-export default async function handler(req) {
-  // Only allow POST
-  if (req.method !== 'POST') {
-    return new Response('Method not allowed', { status: 405 });
-  }
-
-  // CORS headers — allow your Vercel domain
-  const headers = {
-    'Access-Control-Allow-Origin': '*',
-    'Access-Control-Allow-Headers': 'Content-Type',
-    'Content-Type': 'application/json',
-  };
+  if (req.method === 'OPTIONS') return res.status(200).end();
+  if (req.method !== 'POST') return res.status(405).json({ error: 'Method not allowed' });
 
   try {
-    const body = await req.json();
-    const { messages, system } = body;
+    const { messages, system } = req.body;
 
     const response = await fetch('https://api.anthropic.com/v1/messages', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
         'anthropic-version': '2023-06-01',
-        'x-api-key': process.env.ANTHROPIC_API_KEY, // Set this in Vercel dashboard
+        'x-api-key': process.env.ANTHROPIC_API_KEY,
       },
       body: JSON.stringify({
         model: 'claude-sonnet-4-20250514',
@@ -40,13 +31,13 @@ export default async function handler(req) {
 
     if (!response.ok) {
       const err = await response.text();
-      return new Response(JSON.stringify({ error: err }), { status: response.status, headers });
+      return res.status(response.status).json({ error: err });
     }
 
     const data = await response.json();
-    return new Response(JSON.stringify(data), { status: 200, headers });
+    return res.status(200).json(data);
 
   } catch (err) {
-    return new Response(JSON.stringify({ error: err.message }), { status: 500, headers });
+    return res.status(500).json({ error: err.message });
   }
-}
+};
