@@ -578,5 +578,557 @@ function addToBag(btn){
 const obs=new IntersectionObserver(entries=>{entries.forEach(e=>{if(e.isIntersecting){e.target.style.animation='fadeUp .5s ease both';obs.unobserve(e.target)}})},{threshold:.1});
 document.querySelectorAll('.prod-card,.about-card,.member-benefit,.rule-card,.ann-card,.evt-card').forEach(el=>{el.style.opacity='0';obs.observe(el)});
 </script>
+<!-- ============================================================
+  MADAKOP AI CHATBOT
+  Drop this entire block just before the closing </body> tag
+  in your index.html file
+  ============================================================ -->
+
+<!-- CHATBOT STYLES -->
+<style>
+/* BUBBLE */
+.mk-chat-bubble {
+  position: fixed;
+  bottom: 28px;
+  right: 28px;
+  z-index: 9999;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #bfff3c, #8fcc00);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 24px rgba(191,255,60,.45), 0 0 0 0 rgba(191,255,60,.3);
+  animation: bubblePulse 2.5s ease-in-out infinite;
+  transition: transform .2s, box-shadow .2s;
+}
+.mk-chat-bubble:hover {
+  transform: scale(1.1);
+  box-shadow: 0 8px 36px rgba(191,255,60,.6), 0 0 0 0 rgba(191,255,60,.3);
+}
+.mk-chat-bubble img {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.mk-chat-bubble .close-icon {
+  display: none;
+  color: #0d0d0d;
+  font-size: 1.5rem;
+  font-weight: 700;
+  line-height: 1;
+}
+.mk-chat-bubble.open img { display: none; }
+.mk-chat-bubble.open .close-icon { display: block; }
+@keyframes bubblePulse {
+  0%, 100% { box-shadow: 0 4px 24px rgba(191,255,60,.45), 0 0 0 0 rgba(191,255,60,.3); }
+  50% { box-shadow: 0 4px 24px rgba(191,255,60,.45), 0 0 0 12px rgba(191,255,60,.0); }
+}
+/* UNREAD BADGE */
+.mk-chat-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  background: #e91e8c;
+  color: #fff;
+  font-size: .65rem;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid #0d0d0d;
+  animation: badgePop .3s cubic-bezier(.34,1.56,.64,1);
+}
+.mk-chat-badge.hidden { display: none; }
+@keyframes badgePop { from { transform: scale(0); } to { transform: scale(1); } }
+
+/* CHAT WINDOW */
+.mk-chat-window {
+  position: fixed;
+  bottom: 102px;
+  right: 28px;
+  z-index: 9998;
+  width: 360px;
+  max-height: 540px;
+  background: #111;
+  border: 1px solid rgba(191,255,60,.2);
+  border-radius: 16px;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+  box-shadow: 0 24px 80px rgba(0,0,0,.7), 0 0 0 1px rgba(191,255,60,.08);
+  transform: scale(.85) translateY(20px);
+  opacity: 0;
+  pointer-events: none;
+  transition: transform .3s cubic-bezier(.34,1.56,.64,1), opacity .25s ease;
+  transform-origin: bottom right;
+}
+.mk-chat-window.open {
+  transform: scale(1) translateY(0);
+  opacity: 1;
+  pointer-events: all;
+}
+
+/* HEADER */
+.mk-chat-header {
+  background: linear-gradient(135deg, rgba(191,255,60,.1), rgba(233,30,140,.06));
+  border-bottom: 1px solid rgba(191,255,60,.12);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  flex-shrink: 0;
+}
+.mk-chat-header img {
+  width: 38px;
+  height: 38px;
+  border-radius: 50%;
+  object-fit: cover;
+  filter: drop-shadow(0 0 6px rgba(191,255,60,.5));
+  flex-shrink: 0;
+}
+.mk-chat-header-info { flex: 1 }
+.mk-chat-name {
+  font-family: 'Bebas Neue', sans-serif;
+  font-size: 1.05rem;
+  letter-spacing: 2px;
+  color: #bfff3c;
+  line-height: 1;
+  margin-bottom: 2px;
+}
+.mk-chat-status {
+  font-size: .6rem;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  color: rgba(245,245,240,.4);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+.mk-status-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #22c55e;
+  animation: statusPulse 2s ease-in-out infinite;
+}
+@keyframes statusPulse { 0%,100% { opacity:1 } 50% { opacity:.4 } }
+.mk-chat-header-tag {
+  font-size: .52rem;
+  letter-spacing: 2px;
+  text-transform: uppercase;
+  font-weight: 700;
+  padding: 3px 9px;
+  background: rgba(233,30,140,.15);
+  border: 1px solid rgba(233,30,140,.3);
+  color: #e91e8c;
+  border-radius: 2px;
+}
+
+/* MESSAGES */
+.mk-chat-messages {
+  flex: 1;
+  overflow-y: auto;
+  padding: 16px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  scroll-behavior: smooth;
+}
+.mk-chat-messages::-webkit-scrollbar { width: 3px; }
+.mk-chat-messages::-webkit-scrollbar-track { background: transparent; }
+.mk-chat-messages::-webkit-scrollbar-thumb { background: rgba(191,255,60,.2); border-radius: 2px; }
+
+/* MESSAGE BUBBLES */
+.mk-msg {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+  animation: msgIn .3s ease;
+}
+@keyframes msgIn { from { opacity:0; transform:translateY(8px) } to { opacity:1; transform:translateY(0) } }
+.mk-msg.user { flex-direction: row-reverse; }
+.mk-msg-avatar {
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  filter: drop-shadow(0 0 4px rgba(191,255,60,.3));
+}
+.mk-msg-bubble {
+  max-width: 76%;
+  padding: 10px 13px;
+  border-radius: 14px;
+  font-size: .8rem;
+  line-height: 1.55;
+  font-family: 'DM Sans', sans-serif;
+}
+.mk-msg.bot .mk-msg-bubble {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.08);
+  color: #f5f5f0;
+  border-bottom-left-radius: 4px;
+}
+.mk-msg.user .mk-msg-bubble {
+  background: linear-gradient(135deg, #bfff3c, #8fcc00);
+  color: #0d0d0d;
+  font-weight: 600;
+  border-bottom-right-radius: 4px;
+}
+.mk-msg-time {
+  font-size: .55rem;
+  color: rgba(245,245,240,.2);
+  margin-top: 3px;
+  letter-spacing: .5px;
+}
+.mk-msg.user .mk-msg-time { text-align: right; }
+
+/* TYPING INDICATOR */
+.mk-typing {
+  display: flex;
+  gap: 8px;
+  align-items: flex-end;
+}
+.mk-typing-bubble {
+  background: rgba(255,255,255,.06);
+  border: 1px solid rgba(255,255,255,.08);
+  border-radius: 14px;
+  border-bottom-left-radius: 4px;
+  padding: 12px 16px;
+  display: flex;
+  gap: 5px;
+  align-items: center;
+}
+.mk-typing-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #bfff3c;
+  animation: typingBounce .9s ease-in-out infinite;
+}
+.mk-typing-dot:nth-child(2) { animation-delay: .15s; }
+.mk-typing-dot:nth-child(3) { animation-delay: .3s; }
+@keyframes typingBounce {
+  0%,60%,100% { transform: translateY(0); opacity:.4; }
+  30% { transform: translateY(-6px); opacity:1; }
+}
+
+/* QUICK REPLIES */
+.mk-quick-replies {
+  display: flex;
+  gap: 7px;
+  flex-wrap: wrap;
+  padding: 0 14px 12px;
+  flex-shrink: 0;
+}
+.mk-quick-btn {
+  background: transparent;
+  border: 1px solid rgba(191,255,60,.25);
+  color: #bfff3c;
+  font-family: 'DM Sans', sans-serif;
+  font-size: .66rem;
+  letter-spacing: 1px;
+  padding: 6px 12px;
+  border-radius: 20px;
+  cursor: pointer;
+  transition: all .2s;
+  white-space: nowrap;
+}
+.mk-quick-btn:hover {
+  background: rgba(191,255,60,.1);
+  border-color: rgba(191,255,60,.5);
+}
+
+/* INPUT */
+.mk-chat-input-wrap {
+  border-top: 1px solid rgba(255,255,255,.07);
+  padding: 12px 14px;
+  display: flex;
+  gap: 9px;
+  align-items: center;
+  flex-shrink: 0;
+  background: rgba(0,0,0,.3);
+}
+.mk-chat-input {
+  flex: 1;
+  background: rgba(255,255,255,.05);
+  border: 1.5px solid rgba(191,255,60,.12);
+  color: #f5f5f0;
+  font-family: 'DM Sans', sans-serif;
+  font-size: .82rem;
+  padding: 9px 13px;
+  border-radius: 20px;
+  outline: none;
+  transition: border-color .2s;
+}
+.mk-chat-input:focus { border-color: rgba(191,255,60,.4); }
+.mk-chat-input::placeholder { color: rgba(245,245,240,.2); }
+.mk-send-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #bfff3c, #8fcc00);
+  border: none;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: transform .15s, box-shadow .15s;
+  font-size: .9rem;
+}
+.mk-send-btn:hover { transform: scale(1.1); box-shadow: 0 4px 14px rgba(191,255,60,.4); }
+.mk-send-btn:disabled { opacity: .4; pointer-events: none; }
+
+/* POWERED BY */
+.mk-powered {
+  text-align: center;
+  font-size: .52rem;
+  letter-spacing: 1.5px;
+  color: rgba(245,245,240,.15);
+  padding: 6px;
+  flex-shrink: 0;
+}
+
+/* MOBILE */
+@media(max-width: 420px) {
+  .mk-chat-window { width: calc(100vw - 24px); right: 12px; bottom: 90px; }
+  .mk-chat-bubble { right: 16px; bottom: 20px; }
+}
+</style>
+
+<!-- CHAT BUBBLE -->
+<button class="mk-chat-bubble" id="mkChatBubble" onclick="toggleMkChat()" aria-label="Open MadaKop Assistant">
+  <img src="data:image/webp;base64,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" alt="MadaKop">
+  <span class="close-icon">✕</span>
+  <div class="mk-chat-badge" id="mkBadge">1</div>
+</button>
+
+<!-- CHAT WINDOW -->
+<div class="mk-chat-window" id="mkChatWindow">
+  <!-- HEADER -->
+  <div class="mk-chat-header">
+    <img src="data:image/webp;base64,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" alt="MadaKop">
+    <div class="mk-chat-header-info">
+      <div class="mk-chat-name">MadaKop AI</div>
+      <div class="mk-chat-status"><span class="mk-status-dot"></span>Online · Usually replies instantly</div>
+    </div>
+    <div class="mk-chat-header-tag">AI</div>
+  </div>
+
+  <!-- MESSAGES -->
+  <div class="mk-chat-messages" id="mkMessages"></div>
+
+  <!-- QUICK REPLIES -->
+  <div class="mk-quick-replies" id="mkQuickReplies">
+    <button class="mk-quick-btn" onclick="mkSendQuick('How do I become a member?')">🌿 Membership</button>
+    <button class="mk-quick-btn" onclick="mkSendQuick('What strains do you have?')">💨 Strains</button>
+    <button class="mk-quick-btn" onclick="mkSendQuick('How does delivery work?')">🚚 Delivery</button>
+    <button class="mk-quick-btn" onclick="mkSendQuick('What are your prices?')">💰 Pricing</button>
+  </div>
+
+  <!-- INPUT -->
+  <div class="mk-chat-input-wrap">
+    <input
+      class="mk-chat-input"
+      id="mkInput"
+      type="text"
+      placeholder="Ask anything about MadaKop..."
+      onkeydown="if(event.key==='Enter')mkSend()"
+      maxlength="300"
+    >
+    <button class="mk-send-btn" id="mkSendBtn" onclick="mkSend()">➤</button>
+  </div>
+  <div class="mk-powered">Powered by Claude AI · MadaKop 2025</div>
+</div>
+
+<!-- CHATBOT SCRIPT -->
+<script>
+(function() {
+
+  // ── CONFIG ──────────────────────────────────────────────────
+  const MK_BOT_SYSTEM = `You are the MadaKop AI assistant — a friendly, knowledgeable, and slightly cool chat assistant for MadaKop Healing Hub & Private Cannabis Club based in Small Farm, Evaton, Sebokeng, South Africa.
+
+Your job is to help visitors with:
+- Membership questions (how to join, tiers, costs, benefits, the MK code system)
+- Product & strain questions (what's available, effects, recommendations)
+- Delivery & pricing info
+- General club questions
+
+ABOUT MADAKOP:
+- Private cannabis club and healing hub, Est. 2025
+- Location: Small Farm, Evaton, Sebokeng
+- Contact: 073 629 2224 / 065 252 2668
+- Instagram: @madakop_
+- 18+ only
+
+MEMBERSHIP TIERS:
+- Basic: Free — drop notifications, community access
+- Gold: R189/mo — early drops, member pricing, event access, monthly surprises
+- VIP: R379/mo — everything in Gold + priority seating, quarterly gift box, personal alerts
+- Members get a unique MK-XXXXXX code to log in
+- Register at the Register page, login with your code
+
+MK POINTS:
+- Earn points on purchases (1-3 pts per R10 spent)
+- 50 welcome points on signup
+- Birthday bonus: 500 pts
+- Referral: 200 pts per friend
+- Tiers: Bronze (0), Silver (1000pts), Gold (3000pts), VIP (8000pts)
+
+PRODUCTS (general — exact stock changes):
+- Premium flower strains (Sativa, Indica, Hybrid)
+- Concentrates & extracts
+- Glass & accessories
+- Rolling supplies (papers, wraps, backwoods)
+- Edibles
+
+DELIVERY:
+- Local delivery available in Evaton/Sebokeng area
+- Contact via WhatsApp or call for delivery details and pricing
+- Members get priority delivery
+
+TONE:
+- Friendly, warm, slightly cool — like talking to someone at the club
+- Use occasional cannabis culture language naturally (not forced)
+- Keep answers concise — 2-4 sentences max unless more detail is needed
+- If you don't know something specific (exact prices, current stock), tell them to call/WhatsApp: 073 629 2224
+- Never make up specific product names or exact prices you're not sure about
+- Always end with a helpful follow-up or call to action when relevant
+
+You represent MadaKop — be proud, helpful, and keep it real. One love. 🌿`;
+  // ────────────────────────────────────────────────────────────
+
+  let isOpen = false;
+  let isTyping = false;
+  let history = [];
+  let greeted = false;
+
+  function toggleMkChat() {
+    isOpen = !isOpen;
+    document.getElementById('mkChatBubble').classList.toggle('open', isOpen);
+    document.getElementById('mkChatWindow').classList.toggle('open', isOpen);
+    document.getElementById('mkBadge').classList.add('hidden');
+    if (isOpen && !greeted) {
+      greeted = true;
+      setTimeout(() => addBotMsg("Yo! 👋 I'm the MadaKop AI — ask me anything about membership, strains, delivery, or pricing. What's good?"), 400);
+    }
+    if (isOpen) setTimeout(() => document.getElementById('mkInput').focus(), 350);
+  }
+
+  window.toggleMkChat = toggleMkChat;
+
+  function mkSendQuick(text) {
+    document.getElementById('mkQuickReplies').style.display = 'none';
+    mkSendMessage(text);
+  }
+  window.mkSendQuick = mkSendQuick;
+
+  function mkSend() {
+    const input = document.getElementById('mkInput');
+    const text = input.value.trim();
+    if (!text || isTyping) return;
+    input.value = '';
+    document.getElementById('mkQuickReplies').style.display = 'none';
+    mkSendMessage(text);
+  }
+  window.mkSend = mkSend;
+
+  async function mkSendMessage(text) {
+    addUserMsg(text);
+    history.push({ role: 'user', content: text });
+    showTyping();
+
+    try {
+      // Calls our secure Vercel proxy at /api/chat
+      const response = await fetch('/api/chat', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          system: MK_BOT_SYSTEM,
+          messages: history
+        })
+      });
+
+      if (!response.ok) throw new Error('API error');
+      const data = await response.json();
+      const reply = data.content?.[0]?.text || "One sec — having trouble connecting. Call us on 073 629 2224 🌿";
+      hideTyping();
+      addBotMsg(reply);
+      history.push({ role: 'assistant', content: reply });
+
+    } catch(e) {
+      hideTyping();
+      addBotMsg("My connection's a bit shaky right now 😅 For quick help, WhatsApp or call us on 073 629 2224. One love 🌿");
+    }
+  }
+
+  function addBotMsg(text) {
+    const msgs = document.getElementById('mkMessages');
+    const time = new Date().toLocaleTimeString('en-ZA', {hour:'2-digit', minute:'2-digit'});
+    const div = document.createElement('div');
+    div.className = 'mk-msg bot';
+    div.innerHTML = `
+      <img class="mk-msg-avatar" src="data:image/webp;base64,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" alt="MadaKop">
+      <div>
+        <div class="mk-msg-bubble">${text}</div>
+        <div class="mk-msg-time">${time}</div>
+      </div>`;
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  function addUserMsg(text) {
+    const msgs = document.getElementById('mkMessages');
+    const time = new Date().toLocaleTimeString('en-ZA', {hour:'2-digit', minute:'2-digit'});
+    const div = document.createElement('div');
+    div.className = 'mk-msg user';
+    div.innerHTML = `
+      <div>
+        <div class="mk-msg-bubble">${text}</div>
+        <div class="mk-msg-time">${time}</div>
+      </div>`;
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  function showTyping() {
+    isTyping = true;
+    document.getElementById('mkSendBtn').disabled = true;
+    const msgs = document.getElementById('mkMessages');
+    const div = document.createElement('div');
+    div.className = 'mk-typing';
+    div.id = 'mkTypingIndicator';
+    div.innerHTML = `
+      <img class="mk-msg-avatar" src="data:image/webp;base64,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" alt="MadaKop">
+      <div class="mk-typing-bubble">
+        <div class="mk-typing-dot"></div>
+        <div class="mk-typing-dot"></div>
+        <div class="mk-typing-dot"></div>
+      </div>`;
+    msgs.appendChild(div);
+    msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  function hideTyping() {
+    isTyping = false;
+    document.getElementById('mkSendBtn').disabled = false;
+    const t = document.getElementById('mkTypingIndicator');
+    if (t) t.remove();
+  }
+
+})();
+</script>
+<!-- ============================================================
+  END MADAKOP CHATBOT
+  ============================================================ -->
 </body>
 </html>
