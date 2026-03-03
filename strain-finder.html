@@ -267,7 +267,7 @@ footer{background:#080808;border-top:1px solid var(--border)}
       <div class="q-title">What's Your Budget?</div>
       <div class="q-sub">Move the slider to your comfortable spend per session.</div>
       <div class="slider-wrap">
-        <div class="slider-labels"><span>R200</span><span>R500</span><span>R900</span><span>R1 500+</span></div>
+        
         <input type="range" min="200" max="1500" step="50" value="600" id="budgetSlider" oninput="document.getElementById('budgetDisplay').textContent='R'+parseInt(this.value).toLocaleString()">
         <div class="slider-val" id="budgetDisplay">R600</div>
       </div>
@@ -341,12 +341,12 @@ const answers={};
 let currentQ=1;
 
 const strains=[
-  {name:'Garden Reserve OG',emoji:'🪴',type:'Indica Dominant',thc:'28%',price:'R850',why:'Perfect for your wind-down vibe. Dense, frosty, deeply relaxing. Great for pain relief and sleep.',match:'98% Match',tags:['sleepy','relaxed','night','pain','sleep','heavy','regular']},
-  {name:'Green Crack Haze',emoji:'🌱',type:'Sativa',thc:'24%',price:'R750',why:'Uplifting and energising. Great for morning sessions and creative work. Citrusy and smooth.',match:'94% Match',tags:['energetic','creative','morning','afternoon','focus','social','casual','beginner']},
-  {name:'Pink Runtz',emoji:'🌸',type:'Hybrid',thc:'26%',price:'R1 400',why:'Sweet, balanced hybrid great for social settings. Mood-lifting without being overwhelming.',match:'91% Match',tags:['social','creative','evening','afternoon','casual','regular']},
-  {name:'Purple Kush',emoji:'🌿',type:'Indica',thc:'22%',price:'R599',why:'Classic body relaxation and sleep aid. Lower THC makes it ideal for moderate tolerance.',match:'89% Match',tags:['sleepy','relaxed','night','pain','sleep','beginner','casual']},
-  {name:'Live Resin Cart',emoji:'🧪',type:'Full Spectrum',thc:'85%',price:'R710',why:'Concentrated hit with real terpene flavour. Ideal for intense effects without rolling.',match:'87% Match',tags:['heavy','regular','focus','creative','night','evening']},
-  {name:'Cold Press Rosin',emoji:'💛',type:'Solventless Extract',thc:'78%',price:'R899',why:'Clean, solventless extraction. Premium experience with no additives. For the discerning smoker.',match:'85% Match',tags:['heavy','regular','focus','creative','pain']},
+  {name:'Garden Reserve OG',emoji:'🪴',type:'Indica Dominant',thc:'28%',why:'Perfect for your wind-down vibe. Dense, frosty, deeply relaxing. Great for pain relief and sleep.',match:'98% Match',tags:['sleepy','relaxed','night','pain','sleep','heavy','regular']},
+  {name:'Green Crack Haze',emoji:'🌱',type:'Sativa',thc:'24%',why:'Uplifting and energising. Great for morning sessions and creative work. Citrusy and smooth.',match:'94% Match',tags:['energetic','creative','morning','afternoon','focus','social','casual','beginner']},
+  {name:'Pink Runtz',emoji:'🌸',type:'Hybrid',thc:'26%',why:'Sweet, balanced hybrid great for social settings. Mood-lifting without being overwhelming.',match:'91% Match',tags:['social','creative','evening','afternoon','casual','regular']},
+  {name:'Purple Kush',emoji:'🌿',type:'Indica',thc:'22%',why:'Classic body relaxation and sleep aid. Lower THC makes it ideal for moderate tolerance.',match:'89% Match',tags:['sleepy','relaxed','night','pain','sleep','beginner','casual']},
+  {name:'Live Resin Cart',emoji:'🧪',type:'Full Spectrum',thc:'85%',why:'Concentrated hit with real terpene flavour. Ideal for intense effects without rolling.',match:'87% Match',tags:['heavy','regular','focus','creative','night','evening']},
+  {name:'Cold Press Rosin',emoji:'💛',type:'Solventless Extract',thc:'78%',why:'Clean, solventless extraction. Premium experience with no additives. For the discerning smoker.',match:'85% Match',tags:['heavy','regular','focus','creative','pain']},
 ];
 
 function selectOpt(el,key,val){
@@ -394,7 +394,7 @@ function showResults(){
         <div class="rc-name">${s.name}</div>
         <div class="rc-why">${s.why}</div>
         <div class="rc-bottom">
-          <div class="rc-price">${s.price}</div>
+          <div class="rc-price">Members Only 🌿</div>
           <button class="card-btn" onclick="this.textContent='✓ Added!';this.style.background='var(--lime)';this.style.color='var(--dark)';setTimeout(()=>{this.textContent='Add to Bag';this.style.background='';this.style.color=''},1800)">Add to Bag</button>
         </div>
       </div>
