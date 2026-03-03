@@ -4,6 +4,11 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MadaKop – Healing Hub & Private Club | Est. 2025</title>
+<link rel="manifest" href="/manifest.json">
+<meta name="theme-color" content="#bfff3c">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="MadaKop">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:ital,wght@0,400;0,500;0,600;0,700&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet">
 <style>
@@ -580,7 +585,16 @@ document.querySelectorAll('.prod-card,.about-card,.member-benefit,.rule-card,.an
 </script>
 <!-- ============================================================
   MADAKOP AI CHATBOT
-  Drop this entire block just before the closing </body> tag
+  Drop this entire block just before the closing <script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").then(() => {
+      console.log("MadaKop SW registered ✅");
+    });
+  });
+}
+</script>
+</body> tag
   in your index.html file
   ============================================================ -->
 
@@ -1131,5 +1145,14 @@ You represent MadaKop — be proud, helpful, and keep it real. One love. 🌿`;
 <!-- ============================================================
   END MADAKOP CHATBOT
   ============================================================ -->
+<script>
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").then(() => {
+      console.log("MadaKop SW registered ✅");
+    });
+  });
+}
+</script>
 </body>
 </html>
