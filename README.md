@@ -5,12 +5,13 @@
 [![Live Site](https://img.shields.io/badge/Live%20Site-madakop.vercel.app-bfff3c?style=for-the-badge&logo=vercel&logoColor=black)](https://madakop.vercel.app)
 [![Powered by Supabase](https://img.shields.io/badge/Backend-Supabase-3ECF8E?style=for-the-badge&logo=supabase&logoColor=white)](https://supabase.com)
 [![Deployed on Vercel](https://img.shields.io/badge/Deployed-Vercel-black?style=for-the-badge&logo=vercel)](https://vercel.com)
+[![AI Chatbot](https://img.shields.io/badge/Chatbot-Claude%20AI-e91e8c?style=for-the-badge&logo=anthropic&logoColor=white)](https://anthropic.com)
 
 ---
 
 ## What is MadaKop?
 
-MadaKop is a private cannabis club and healing hub based in Evaton, Sebokeng, South Africa. This repository contains the full website — a membership platform with a product menu, loyalty rewards system, events, rolling tutorials, and a live admin dashboard.
+MadaKop is a private cannabis club and healing hub based in Evaton, Sebokeng, South Africa. This repository contains the full website — a membership platform with a product menu, loyalty rewards system, events, rolling tutorials, AI chatbot, and a live admin dashboard.
 
 ---
 
@@ -18,7 +19,7 @@ MadaKop is a private cannabis club and healing hub based in Evaton, Sebokeng, So
 
 | Page | Description |
 |---|---|
-| `index.html` | Homepage — shop, events, delivery info, club rules |
+| `index.html` | Homepage — shop, events, delivery info, club rules, AI chatbot |
 | `register.html` | 3-step membership registration — saves to Supabase |
 | `login.html` | Member sign-in via unique MK-XXXXXX code |
 | `members.html` | Live dashboard — points, tier progress, activity log |
@@ -26,6 +27,7 @@ MadaKop is a private cannabis club and healing hub based in Evaton, Sebokeng, So
 | `strain-finder.html` | 5-question quiz to find your perfect strain |
 | `tutorials.html` | Step-by-step rolling tutorials (Beginner → Advanced) |
 | `admin.html` | Admin panel — manage members, award points, export CSV |
+| `api/chat.js` | Vercel serverless function — Claude AI proxy (keeps API key secure) |
 
 ---
 
@@ -33,12 +35,19 @@ MadaKop is a private cannabis club and healing hub based in Evaton, Sebokeng, So
 
 - **Frontend** — Pure HTML, CSS, JavaScript (no frameworks)
 - **Backend** — [Supabase](https://supabase.com) (PostgreSQL database + REST API)
+- **AI Chatbot** — [Claude API](https://anthropic.com) via Vercel serverless function
 - **Hosting** — [Vercel](https://vercel.com)
-- **Fonts** — Google Fonts (Bebas Neue, DM Sans)
+- **Fonts** — Google Fonts (Bebas Neue, DM Sans, Space Mono)
 
 ---
 
 ## Features
+
+### 🤖 AI Chatbot
+- Powered by Claude (claude-sonnet-4-20250514)
+- Handles membership, strain, delivery and ordering questions
+- API key stored securely in Vercel — never exposed in code
+- Fallback to WhatsApp if connection fails
 
 ### 🪪 Membership System
 - Members register and receive a unique **MK-XXXXXX** code
@@ -62,7 +71,7 @@ MadaKop is a private cannabis club and healing hub based in Evaton, Sebokeng, So
 - Export all members to CSV
 
 ### 🌿 Other Pages
-- Live product filtering by category
+- Live product filtering by category (no prices displayed — members WhatsApp to order)
 - Strain finder quiz
 - Step-by-step rolling tutorials with skill level filtering
 - Events section with RSVP
@@ -83,6 +92,33 @@ points_log
 
 ---
 
+## Environment Variables (Vercel)
+
+| Variable | Description |
+|----------|-------------|
+| `ANTHROPIC_API_KEY` | Claude API key for the AI chatbot |
+
+---
+
+## 🚀 Commit History
+
+| # | Commit | What Changed | Status |
+|---|--------|-------------|--------|
+| 1 | `Add files via upload` | Initial site upload — all HTML pages | ✅ |
+| 2 | `Add Supabase Backend` | Supabase DB integration, register/login/members | ✅ |
+| 3 | `Fix` | Dashboard blank page fix — URL param auth | ✅ |
+| 4 | `Add AI Chatbot` | MadaKop AI chatbot injected into index.html | ✅ |
+| 5 | `Create chat.js` | Vercel serverless function proxy for Claude API | ✅ |
+| 6 | `Add files via upload` | Updated index.html — ESM version (caused issues) | ❌ |
+| 7 | `Add files via upload` | Re-upload attempt | ❌ |
+| 8 | `Add Vercel configuration for chat.js` | vercel.json — wrong runtime format | ❌ |
+| 9 | `Add files via upload` | Re-upload attempt | ❌ |
+| 10 | `Add files via upload` | Active deployment — vercel.json removed | ✅ |
+| 11 | `Remove prices — Members Only` | All product prices hidden, WhatsApp to Order | ✅ |
+| 12 | `Fix strain-finder prices` | Strain finder prices removed, Members Only | ✅ |
+
+---
+
 ## Contact
 
 📞 073 629 2224 · 065 252 2668
@@ -92,4 +128,3 @@ points_log
 ---
 
 *© 2025 MadaKop Healing Hub & Private Club · 18+ Only · Points have no cash value*
-
