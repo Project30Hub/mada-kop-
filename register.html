@@ -429,6 +429,19 @@ async function completeReg() {
     }));
     sessionStorage.setItem('mk_logged_in', 'true');
 
+    // Send welcome email (non-blocking — won't stop registration if it fails)
+    fetch('/api/welcome-email', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        firstName: first,
+        lastName: last,
+        email: email,
+        code: code,
+        tier: selTierVal
+      })
+    }).catch(() => {}); // Silent fail — registration still works
+
     // Show success
     [1, 2, 3].forEach(i => document.getElementById('step' + i).style.display = 'none');
     ['si1', 'si2', 'si3'].forEach(id => document.getElementById(id).className = 'step-ind done');
