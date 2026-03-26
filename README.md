@@ -26,6 +26,7 @@ MadaKop is a private cannabis club and healing hub based in Evaton, Sebokeng, So
 | `rewards.html` | Loyalty tiers, points system, rewards shop |
 | `strain-finder.html` | 5-question quiz to find your perfect strain |
 | `tutorials.html` | Step-by-step rolling tutorials (Beginner → Advanced) |
+| `driver.html` | Driver dashboard — view orders, update status, customer details |
 | `admin.html` | Admin panel — manage members, award points, export CSV |
 | `api/chat.js` | Vercel serverless function — Claude AI proxy (keeps API key secure) |
 

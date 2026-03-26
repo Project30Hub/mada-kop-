@@ -181,6 +181,7 @@ a{text-decoration:none;color:inherit}
       <button class="tab" onclick="switchTab('points')">⭐ Points Log</button>
       <button class="tab" onclick="switchTab('addpoints')">➕ Add Points</button>
       <button class="tab" onclick="switchTab('products')">🛍️ Products</button>
+      <button class="tab" onclick="switchTab('orders')">🚚 Delivery Orders</button>
     </div>
 
     <!-- ── MEMBERS PAGE ── -->
@@ -227,37 +228,42 @@ a{text-decoration:none;color:inherit}
       </div>
     </div>
 
-    <!-- ── PRODUCTS MANAGEMENT PAGE ── -->
-    <div class="page" id="page-products" style="display:none">
+    <!-- ── DELIVERY ORDERS PAGE ── -->
+    <div class="page" id="page-orders">
       <div class="toolbar">
         <div class="search-wrap">
           <span class="search-icon">🔍</span>
-          <input type="text" id="prodSearch" placeholder="Search product name, category, tag..." oninput="filterProducts()">
+          <input type="text" id="orderSearch" placeholder="Search order ID, name, phone..." oninput="filterOrders()">
         </div>
-        <select class="filter-select" id="prodCatFilter" onchange="filterProducts()">
-          <option value="">All Categories</option>
-          <option value="flower">Flower</option>
-          <option value="extracts">Extracts</option>
-          <option value="glass">Glass</option>
-          <option value="wraps">Wraps</option>
-          <option value="accessories">Accessories</option>
-          <option value="edibles">Edibles</option>
+        <select class="filter-select" id="orderStatusFilter" onchange="filterOrders()">
+          <option value="">All Statuses</option>
+          <option value="New">New</option>
+          <option value="Picked">Picked</option>
+          <option value="Delivered">Delivered</option>
         </select>
-        <button class="export-btn" onclick="openProductModal('create')">＋ Add Product</button>
+        <button class="export-btn" onclick="exportOrdersCSV()">⬇ Export Orders CSV</button>
       </div>
       <div class="table-wrap">
-        <div id="productsLoading" class="spinner"></div>
-        <table class="data-table" id="productsTable" style="display:none">
+        <div id="ordersLoading" class="spinner"></div>
+        <table class="data-table" id="ordersTable" style="display:none">
           <thead>
             <tr>
+              <th>Order ID</th>
               <th>Name</th>
-              <th>Category</th>
-              <th>Tags</th>
-              <th>Stock</th>
-              <th>Badge</th>
-              <th>Price</th>
-              <th>Visible</th>
+              <th>Phone</th>
+              <th>Product</th>
+              <th>Total</th>
+              <th>Address</th>
+              <th>Status</th>
+              <th>Created</th>
               <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="ordersBody"></tbody>
+        </table>
+        <div id="noOrders" class="no-results" style="display:none">No orders found matching your search.</div>
+      </div>
+    </div>
             </tr>
           </thead>
           <tbody id="productsBody"></tbody>

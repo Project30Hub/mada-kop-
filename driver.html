@@ -1,0 +1,459 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MadaKop – Driver Dashboard</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase_config.js"></script>
+<style>
+:root{--lime:#bfff3c;--pink:#e91e8c;--dark:#0d0d0d;--card:#161616;--card2:#1c1c1c;--white:#f5f5f0;--grey:rgba(245,245,240,.52);--border:rgba(191,255,60,.12);--red:#ff4444}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{scroll-behavior:smooth}
+body{background:var(--dark);color:var(--white);font-family:'DM Sans',sans-serif;min-height:100vh;display:flex;flex-direction:column}
+a{text-decoration:none;color:inherit}
+
+/* LOGIN GATE */
+.driver-gate{min-height:100vh;display:flex;align-items:center;justify-content:center;background:radial-gradient(ellipse 60% 60% at 50% 40%,rgba(233,30,140,.07) 0%,transparent 65%),var(--dark)}
+.gate-box{background:rgba(22,22,22,.97);border:1px solid rgba(233,30,140,.25);border-radius:10px;padding:44px 40px;width:100%;max-width:380px;position:relative}
+.gate-box::before{content:'';position:absolute;top:0;left:0;right:0;height:3px;background:linear-gradient(90deg,var(--pink),var(--lime));border-radius:10px 10px 0 0}
+.gate-logo{display:flex;align-items:center;gap:12px;margin-bottom:26px}
+.gate-logo img{width:48px;height:48px;border-radius:50%;object-fit:cover;filter:drop-shadow(0 0 8px rgba(233,30,140,.5))}
+.gate-logo-name{font-family:'Bebas Neue';font-size:1.7rem;letter-spacing:3px;color:var(--lime)}
+.gate-logo-sub{font-size:.55rem;letter-spacing:3px;text-transform:uppercase;color:var(--pink)}
+.gate-title{font-family:'Bebas Neue';font-size:2rem;letter-spacing:2px;margin-bottom:6px}
+.gate-sub{font-size:.78rem;color:var(--grey);margin-bottom:26px;line-height:1.5}
+.g-label{display:block;font-size:.6rem;letter-spacing:2px;text-transform:uppercase;font-weight:700;color:var(--grey);margin-bottom:7px}
+.g-input{width:100%;background:rgba(255,255,255,.04);border:1.5px solid rgba(233,30,140,.2);color:var(--white);font-family:'DM Sans';font-size:.88rem;padding:12px 13px;border-radius:3px;outline:none;transition:border-color .2s;margin-bottom:14px}
+.g-input:focus{border-color:var(--pink);box-shadow:0 0 0 3px rgba(233,30,140,.1)}
+.g-input[type=password]{letter-spacing:3px}
+.g-btn{width:100%;background:var(--pink);color:#fff;font-family:'DM Sans';font-size:.78rem;letter-spacing:3px;text-transform:uppercase;font-weight:700;padding:14px;border:none;cursor:pointer;border-radius:3px;transition:box-shadow .2s}
+.g-btn:hover{box-shadow:0 8px 30px rgba(233,30,140,.35)}
+.g-btn.loading{opacity:.6;pointer-events:none}
+.g-err{font-size:.74rem;color:var(--red);margin-top:8px;display:none}
+.g-err.show{display:block}
+
+/* DRIVER DASHBOARD */
+.driver-wrap{display:none;flex:1;flex-direction:column}
+/* TOP BAR */
+.topbar{height:64px;background:rgba(13,13,13,.98);border-bottom:1px solid var(--border);display:flex;align-items:center;justify-content:space-between;padding:0 32px;position:sticky;top:0;z-index:100;backdrop-filter:blur(16px)}
+.topbar-logo{display:flex;align-items:center;gap:10px}
+.topbar-logo img{width:38px;height:38px;border-radius:50%;object-fit:cover;filter:drop-shadow(0 0 6px rgba(191,255,60,.4))}
+.topbar-logo-name{font-family:'Bebas Neue';font-size:1.4rem;letter-spacing:3px;color:var(--lime)}
+.topbar-badge{font-size:.52rem;letter-spacing:2px;text-transform:uppercase;font-weight:700;padding:3px 9px;background:rgba(233,30,140,.18);border:1px solid rgba(233,30,140,.35);color:var(--pink);border-radius:2px}
+.topbar-right{display:flex;align-items:center;gap:16px}
+.topbar-right span{font-size:.65rem;letter-spacing:1px;color:var(--grey)}
+.signout-btn{background:none;border:1px solid rgba(255,255,255,.1);color:var(--grey);font-family:'DM Sans';font-size:.6rem;letter-spacing:2px;text-transform:uppercase;padding:7px 14px;border-radius:3px;cursor:pointer;transition:all .2s}
+.signout-btn:hover{border-color:var(--pink);color:var(--pink)}
+/* CONTENT */
+.driver-content{flex:1;padding:32px}
+.page{display:none}.page.active{display:block}
+/* STATS */
+.stats-row{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:32px}
+.sc{background:var(--card);border:1px solid var(--border);border-radius:8px;padding:20px 18px}
+.sc-val{font-family:'Bebas Neue';font-size:2.4rem;letter-spacing:2px;color:var(--lime);line-height:1;margin-bottom:4px}
+.sc-val.pink{color:var(--pink)}.sc-val.white{color:var(--white)}
+.sc-lbl{font-size:.6rem;letter-spacing:2px;text-transform:uppercase;color:var(--grey);font-weight:700}
+/* ORDERS TABLE */
+.table-wrap{background:var(--card);border:1px solid var(--border);border-radius:8px;overflow:hidden}
+.data-table{width:100%;border-collapse:collapse}
+.data-table thead th{background:rgba(255,255,255,.03);font-size:.57rem;letter-spacing:2px;text-transform:uppercase;font-weight:700;color:var(--grey);padding:13px 16px;text-align:left;border-bottom:1px solid var(--border);white-space:nowrap}
+.data-table tbody tr{border-bottom:1px solid rgba(255,255,255,.04);transition:background .15s}
+.data-table tbody tr:last-child{border-bottom:none}
+.data-table tbody tr:hover{background:rgba(255,255,255,.02)}
+.data-table td{padding:13px 16px;font-size:.78rem;color:var(--grey)}
+.data-table td.name{color:var(--white);font-weight:600}
+.status-chip{display:inline-block;font-size:.52rem;letter-spacing:2px;text-transform:uppercase;font-weight:700;padding:3px 9px;border-radius:2px;margin-right:8px}
+.status-New{background:rgba(191,255,60,.12);color:var(--lime);border:1px solid rgba(191,255,60,.25)}
+.status-Picked{background:rgba(168,85,247,.12);color:#a855f7;border:1px solid rgba(168,85,247,.25)}
+.status-Delivered{background:rgba(34,197,94,.12);color:#22c55e;border:1px solid rgba(34,197,94,.25)}
+.action-btns{display:flex;gap:6px;flex-wrap:wrap}
+.act-btn{font-size:.57rem;letter-spacing:1.5px;text-transform:uppercase;font-weight:700;padding:5px 10px;border-radius:2px;cursor:pointer;border:none;font-family:'DM Sans';transition:all .15s}
+.act-pick{background:rgba(191,255,60,.12);color:var(--lime);border:1px solid rgba(191,255,60,.2)}
+.act-pick:hover{background:rgba(191,255,60,.25)}
+.act-deliver{background:rgba(34,197,94,.12);color:#22c55e;border:1px solid rgba(34,197,94,.2)}
+.act-deliver:hover{background:rgba(34,197,94,.25)}
+.no-results{text-align:center;padding:48px;color:var(--grey);font-size:.82rem}
+.spinner{display:flex;align-items:center;justify-content:center;padding:48px}
+.spinner::after{content:'';width:24px;height:24px;border:2px solid var(--grey);border-top:2px solid var(--lime);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{0%{transform:rotate(0deg)}100%{transform:rotate(360deg)}}
+/* ORDER DETAILS MODAL */
+.modal-overlay{position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,.8);display:flex;align-items:center;justify-content:center;z-index:1000;padding:20px}
+.modal-overlay{display:none}
+.modal-overlay.show{display:flex}
+.modal{background:var(--card);border:1px solid var(--border);border-radius:8px;max-width:600px;width:100%;max-height:90vh;overflow-y:auto}
+.modal-title{font-family:'Bebas Neue';font-size:1.8rem;letter-spacing:2px;margin-bottom:8px;padding:24px 24px 0}
+.modal-sub{font-size:.8rem;color:var(--grey);margin-bottom:20px;padding:0 24px}
+.modal-body{padding:0 24px 24px}
+.modal-close{position:absolute;top:16px;right:16px;background:none;border:none;color:var(--grey);font-size:1.5rem;cursor:pointer;padding:4px}
+.order-detail{display:flex;flex-direction:column;gap:12px}
+.detail-row{display:flex;justify-content:space-between;align-items:center;padding:8px 0;border-bottom:1px solid rgba(255,255,255,.05)}
+.detail-row:last-child{border-bottom:none}
+.detail-label{font-size:.7rem;letter-spacing:2px;text-transform:uppercase;color:var(--grey);font-weight:700}
+.detail-value{color:var(--white);font-size:.85rem}
+.detail-value.phone{color:var(--lime)}
+.detail-value.address{word-break:break-word}
+.map-link{background:rgba(191,255,60,.1);color:var(--lime);border:1px solid rgba(191,255,60,.2);padding:8px 12px;border-radius:3px;text-decoration:none;font-size:.7rem;letter-spacing:1px;text-transform:uppercase;font-weight:700;margin-top:8px;display:inline-block}
+.map-link:hover{background:rgba(191,255,60,.2)}
+.whatsapp-link{background:rgba(34,197,94,.1);color:#22c55e;border:1px solid rgba(34,197,94,.2);padding:8px 12px;border-radius:3px;text-decoration:none;font-size:.7rem;letter-spacing:1px;text-transform:uppercase;font-weight:700;margin-top:8px;display:inline-block}
+.whatsapp-link:hover{background:rgba(34,197,94,.2)}
+</style>
+</head>
+<body>
+<!-- DRIVER LOGIN GATE -->
+<div class="driver-gate" id="driverGate">
+  <div class="gate-box">
+    <div class="gate-logo">
+      <img src="https://via.placeholder.com/48x48/333/fff?text=🚚" alt="MadaKop">
+      <div>
+        <div class="gate-logo-name">MadaKop</div>
+        <div class="gate-logo-sub">Driver Portal</div>
+      </div>
+    </div>
+    <div class="gate-title">Driver Login</div>
+    <div class="gate-sub">Enter your Supabase credentials to access the driver dashboard.</div>
+    <label class="g-label" for="driverUrl">Supabase URL</label>
+    <input class="g-input" id="driverUrl" type="text" placeholder="https://xxxx.supabase.co" autocomplete="off">
+    <label class="g-label" for="driverKey">Supabase Anon Key</label>
+    <input class="g-input" id="driverKey" type="text" placeholder="eyJ..." autocomplete="off">
+    <label class="g-label" for="driverPass">Driver Password</label>
+    <input class="g-input" id="driverPass" type="password" placeholder="Enter driver password">
+    <button class="g-btn" id="driverLoginBtn" onclick="driverLogin()">Login to Dashboard →</button>
+    <div class="g-err" id="driverErr"></div>
+  </div>
+</div>
+
+<!-- DRIVER DASHBOARD -->
+<div class="driver-wrap" id="driverWrap">
+  <!-- TOP BAR -->
+  <div class="topbar">
+    <div class="topbar-logo">
+      <img src="https://via.placeholder.com/38x38/333/fff?text=🚚" alt="MadaKop">
+      <div class="topbar-logo-name">Driver Dashboard</div>
+    </div>
+    <div class="topbar-badge">Active</div>
+    <div class="topbar-right">
+      <span id="driverGreeting">Welcome, Driver</span>
+      <button class="signout-btn" onclick="driverSignOut()">Sign Out</button>
+    </div>
+  </div>
+
+  <!-- CONTENT -->
+  <div class="driver-content">
+    <!-- STATS -->
+    <div class="stats-row">
+      <div class="sc">
+        <div class="sc-val" id="totalOrders">0</div>
+        <div class="sc-lbl">Total Orders</div>
+      </div>
+      <div class="sc">
+        <div class="sc-val pink" id="newOrders">0</div>
+        <div class="sc-lbl">New Orders</div>
+      </div>
+      <div class="sc">
+        <div class="sc-val" id="pickedOrders">0</div>
+        <div class="sc-lbl">Picked Up</div>
+      </div>
+      <div class="sc">
+        <div class="sc-val white" id="deliveredToday">0</div>
+        <div class="sc-lbl">Delivered Today</div>
+      </div>
+    </div>
+
+    <!-- ORDERS TABLE -->
+    <div class="table-wrap">
+      <div id="ordersLoading" class="spinner"></div>
+      <table class="data-table" id="ordersTable" style="display:none">
+        <thead>
+          <tr>
+            <th>Order ID</th>
+            <th>Customer</th>
+            <th>Product</th>
+            <th>Total</th>
+            <th>Address</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="ordersBody"></tbody>
+      </table>
+      <div id="noOrders" class="no-results" style="display:none">No orders available at this time.</div>
+    </div>
+  </div>
+</div>
+
+<!-- ORDER DETAILS MODAL -->
+<div class="modal-overlay" id="orderModal">
+  <div class="modal">
+    <button class="modal-close" onclick="closeOrderModal()">×</button>
+    <div class="modal-title" id="modalTitle">Order Details</div>
+    <div class="modal-sub" id="modalSub">Order #<span id="modalOrderId"></span></div>
+    <div class="modal-body">
+      <div class="order-detail" id="orderDetails"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ══════════════════════════════════════════════════
+//  DRIVER CONFIG — Change this password!
+// ══════════════════════════════════════════════════
+const DRIVER_PASSWORD = 'driver2025';   // ← Change this to your own password!
+// Supabase credentials are entered at login
+// ══════════════════════════════════════════════════
+
+let db = null;
+let allOrders = [];
+
+// ── DRIVER LOGIN ──────────────────────────────────────────
+function driverLogin() {
+  const url = document.getElementById('driverUrl').value.trim();
+  const key = document.getElementById('driverKey').value.trim();
+  const pass = document.getElementById('driverPass').value.trim();
+  const err = document.getElementById('driverErr');
+  const btn = document.getElementById('driverLoginBtn');
+  err.classList.remove('show');
+
+  if (!url || !key) { err.textContent = 'Please enter your Supabase URL and key.'; err.classList.add('show'); return; }
+  if (pass !== DRIVER_PASSWORD) { err.textContent = 'Incorrect driver password.'; err.classList.add('show'); return; }
+
+  btn.textContent = 'Connecting...'; btn.classList.add('loading');
+
+  const { createClient } = supabase;
+  db = createClient(url, key);
+
+  // Test connection
+  db.from('delivery_orders').select('id', { count: 'exact', head: true }).then(({ error }) => {
+    if (error) {
+      err.textContent = 'Could not connect to Supabase. Check your URL and key.';
+      err.classList.add('show');
+      btn.textContent = 'Login to Dashboard →';
+      btn.classList.remove('loading');
+      db = null;
+      return;
+    }
+    // Save session
+    sessionStorage.setItem('driver_url', url);
+    sessionStorage.setItem('driver_key', key);
+    sessionStorage.setItem('driver_auth', 'true');
+    showDriverDashboard();
+  });
+}
+
+function showDriverDashboard() {
+  document.getElementById('driverGate').style.display = 'none';
+  document.getElementById('driverWrap').classList.add('show');
+  document.getElementById('driverGreeting').textContent = 'Welcome, Driver';
+  loadDriverOrders();
+}
+
+function driverSignOut() {
+  sessionStorage.removeItem('driver_auth');
+  sessionStorage.removeItem('driver_url');
+  sessionStorage.removeItem('driver_key');
+  location.reload();
+}
+
+// ── LOAD DRIVER ORDERS ───────────────────────────────────
+async function loadDriverOrders() {
+  const loading = document.getElementById('ordersLoading');
+  const table = document.getElementById('ordersTable');
+  const noResults = document.getElementById('noOrders');
+  loading.style.display = 'block';
+  table.style.display = 'none';
+  noResults.style.display = 'none';
+
+  try {
+    const { data: orders, error } = await db
+      .from('delivery_orders')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    if (error) throw error;
+
+    allOrders = orders || [];
+    renderDriverOrders(allOrders);
+    updateDriverStats(allOrders);
+  } catch (e) {
+    console.error('Error loading orders:', e);
+    showToast('Failed to load orders', 'err');
+  } finally {
+    loading.style.display = 'none';
+  }
+}
+
+function updateDriverStats(orders) {
+  const total = orders.length;
+  const newOrders = orders.filter(o => o.status === 'New').length;
+  const picked = orders.filter(o => o.status === 'Picked').length;
+  const deliveredToday = orders.filter(o => {
+    const today = new Date().toDateString();
+    const orderDate = new Date(o.created_at).toDateString();
+    return o.status === 'Delivered' && orderDate === today;
+  }).length;
+
+  document.getElementById('totalOrders').textContent = total;
+  document.getElementById('newOrders').textContent = newOrders;
+  document.getElementById('pickedOrders').textContent = picked;
+  document.getElementById('deliveredToday').textContent = deliveredToday;
+}
+
+function renderDriverOrders(orders) {
+  const body = document.getElementById('ordersBody');
+  const table = document.getElementById('ordersTable');
+  const noResults = document.getElementById('noOrders');
+
+  if (!orders || orders.length === 0) {
+    table.style.display = 'none';
+    noResults.style.display = 'block';
+    return;
+  }
+
+  noResults.style.display = 'none';
+  table.style.display = 'table';
+
+  body.innerHTML = orders.map(o => {
+    const statusClass = o.status.toLowerCase().replace(/\s+/g, '');
+    const address = `${o.addressLine}, ${o.city} ${o.zip}`;
+    const shortAddress = address.length > 30 ? address.substring(0, 30) + '...' : address;
+
+    return `<tr>
+      <td class="name">${o.id}</td>
+      <td>${o.name}</td>
+      <td>${o.productName} ×${o.quantity}</td>
+      <td>R${o.total.toFixed(2)}</td>
+      <td title="${address}">${shortAddress}</td>
+      <td><span class="status-chip status-${statusClass}">${o.status}</span></td>
+      <td><div class="action-btns">
+        <button class="act-btn act-pick" onclick="viewOrderDetails('${o.id}')">View Details</button>
+        ${o.status === 'New' ? `<button class="act-btn act-pick" onclick="updateOrderStatus('${o.id}', 'Picked')">Pick Up</button>` : ''}
+        ${o.status === 'Picked' ? `<button class="act-btn act-deliver" onclick="updateOrderStatus('${o.id}', 'Delivered')">Deliver</button>` : ''}
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+async function updateOrderStatus(orderId, newStatus) {
+  try {
+    const { error } = await db
+      .from('delivery_orders')
+      .update({ status: newStatus })
+      .eq('id', orderId);
+
+    if (error) throw error;
+
+    // Update local data
+    const order = allOrders.find(o => o.id === orderId);
+    if (order) order.status = newStatus;
+
+    renderDriverOrders(allOrders);
+    updateDriverStats(allOrders);
+
+    const action = newStatus === 'Picked' ? 'picked up' : 'delivered';
+    showToast(`Order ${orderId} marked as ${action}!`);
+  } catch (e) {
+    console.error('Error updating order:', e);
+    showToast('Failed to update order status', 'err');
+  }
+}
+
+function viewOrderDetails(orderId) {
+  const order = allOrders.find(o => o.id === orderId);
+  if (!order) return;
+
+  document.getElementById('modalOrderId').textContent = order.id;
+  document.getElementById('orderDetails').innerHTML = `
+    <div class="detail-row">
+      <span class="detail-label">Customer</span>
+      <span class="detail-value">${order.name}</span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Phone</span>
+      <span class="detail-value phone">${order.phone}</span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Email</span>
+      <span class="detail-value">${order.email || 'Not provided'}</span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Address</span>
+      <span class="detail-value address">${order.addressLine}, ${order.city} ${order.zip}</span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Product</span>
+      <span class="detail-value">${order.productName} ×${order.quantity}</span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Total</span>
+      <span class="detail-value">R${order.total.toFixed(2)}</span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">COD Product</span>
+      <span class="detail-value">${order.codProduct ? 'Yes' : 'No'}</span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">COD Delivery</span>
+      <span class="detail-value">${order.codDelivery ? 'Yes' : 'No'}</span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Note</span>
+      <span class="detail-value">${order.note || 'None'}</span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Status</span>
+      <span class="detail-value"><span class="status-chip status-${order.status.toLowerCase()}">${order.status}</span></span>
+    </div>
+    <div class="detail-row">
+      <span class="detail-label">Ordered</span>
+      <span class="detail-value">${new Date(order.created_at).toLocaleString()}</span>
+    </div>
+    <div style="margin-top:16px">
+      <a class="map-link" href="https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(order.addressLine + ', ' + order.city + ' ' + order.zip)}" target="_blank">🗺️ Open in Maps</a>
+      <a class="whatsapp-link" href="https://wa.me/${order.phone.replace(/\D/g,'')}?text=Hi%20${order.name}%2C%20your%20MadaKop%20order%20is%20on%20the%20way!" target="_blank">💬 WhatsApp Customer</a>
+    </div>
+  `;
+
+  document.getElementById('orderModal').classList.add('show');
+}
+
+function closeOrderModal() {
+  document.getElementById('orderModal').classList.remove('show');
+}
+
+function showToast(message, type = '') {
+  const toast = document.createElement('div');
+  toast.className = `toast ${type}`;
+  toast.textContent = message;
+  toast.style.cssText = `
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    background: ${type === 'err' ? '#ff4444' : '#bfff3c'};
+    color: ${type === 'err' ? '#fff' : '#000'};
+    padding: 12px 20px;
+    border-radius: 4px;
+    font-family: 'DM Sans';
+    font-size: 14px;
+    z-index: 10000;
+    animation: slideIn 0.3s ease-out;
+  `;
+  document.body.appendChild(toast);
+  setTimeout(() => toast.remove(), 4000);
+}
+
+// ── AUTO-LOGIN FROM SESSION ─────────────────────────
+window.addEventListener('DOMContentLoaded', () => {
+  const auth = sessionStorage.getItem('driver_auth');
+  const url = sessionStorage.getItem('driver_url');
+  const key = sessionStorage.getItem('driver_key');
+  if (auth === 'true' && url && key) {
+    const { createClient } = supabase;
+    db = createClient(url, key);
+    showDriverDashboard();
+  }
+});
+</script>
+</body>
+</html>
