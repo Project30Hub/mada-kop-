@@ -4,11 +4,13 @@
 
 // ── AGE GATE ──
 function enterSite() {
-  document.getElementById('ageGate').classList.add('hidden');
+  const gate = document.getElementById('ageGate');
+  if (gate) gate.classList.add('hidden');
   sessionStorage.setItem('mk_age_verified', 'true');
+  sessionStorage.setItem('mk', '1');
 }
 window.addEventListener('DOMContentLoaded', () => {
-  if (sessionStorage.getItem('mk_age_verified') === 'true') {
+  if (sessionStorage.getItem('mk_age_verified') === 'true' || sessionStorage.getItem('mk') === '1') {
     const gate = document.getElementById('ageGate');
     if (gate) gate.classList.add('hidden');
   }
@@ -68,6 +70,19 @@ function addToBag(btn) {
     btn.classList.remove('added');
   }, 2000);
 }
+
+window.addEventListener('DOMContentLoaded', () => {
+  document.querySelectorAll('.btn-add').forEach(btn => {
+    btn.addEventListener('click', ev => {
+      ev.preventDefault();
+      addToBag(btn);
+      const href = btn.getAttribute('href');
+      if (href && href.startsWith('http')) {
+        window.open(href, '_blank');
+      }
+    });
+  });
+});
 
 // ── TUTORIAL STEP SWITCHER ──
 function showStep(n) {

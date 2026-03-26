@@ -180,6 +180,7 @@ a{text-decoration:none;color:inherit}
       <button class="tab active" onclick="switchTab('members')">👥 Members</button>
       <button class="tab" onclick="switchTab('points')">⭐ Points Log</button>
       <button class="tab" onclick="switchTab('addpoints')">➕ Add Points</button>
+      <button class="tab" onclick="switchTab('products')">🛍️ Products</button>
     </div>
 
     <!-- ── MEMBERS PAGE ── -->
@@ -223,6 +224,45 @@ a{text-decoration:none;color:inherit}
           <tbody id="membersBody"></tbody>
         </table>
         <div id="noResults" class="no-results" style="display:none">No members found matching your search.</div>
+      </div>
+    </div>
+
+    <!-- ── PRODUCTS MANAGEMENT PAGE ── -->
+    <div class="page" id="page-products" style="display:none">
+      <div class="toolbar">
+        <div class="search-wrap">
+          <span class="search-icon">🔍</span>
+          <input type="text" id="prodSearch" placeholder="Search product name, category, tag..." oninput="filterProducts()">
+        </div>
+        <select class="filter-select" id="prodCatFilter" onchange="filterProducts()">
+          <option value="">All Categories</option>
+          <option value="flower">Flower</option>
+          <option value="extracts">Extracts</option>
+          <option value="glass">Glass</option>
+          <option value="wraps">Wraps</option>
+          <option value="accessories">Accessories</option>
+          <option value="edibles">Edibles</option>
+        </select>
+        <button class="export-btn" onclick="openProductModal('create')">＋ Add Product</button>
+      </div>
+      <div class="table-wrap">
+        <div id="productsLoading" class="spinner"></div>
+        <table class="data-table" id="productsTable" style="display:none">
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Category</th>
+              <th>Tags</th>
+              <th>Stock</th>
+              <th>Badge</th>
+              <th>Price</th>
+              <th>Visible</th>
+              <th>Actions</th>
+            </tr>
+          </thead>
+          <tbody id="productsBody"></tbody>
+        </table>
+        <div id="productsNoResults" class="no-results" style="display:none">No products found matching your filter.</div>
       </div>
     </div>
 
@@ -335,6 +375,7 @@ function showAdminPanel() {
   document.getElementById('adminWrap').classList.add('show');
   document.getElementById('adminGreeting').textContent = 'MadaKop Admin';
   loadMembers();
+  loadProducts();
   loadLog();
 }
 
@@ -348,7 +389,7 @@ function adminSignOut() {
 // ── TABS ───────────────────────────────────────────
 function switchTab(name) {
   document.querySelectorAll('.tab').forEach((t,i) => {
-    const tabs = ['members','points','addpoints'];
+    const tabs = ['members','points','addpoints','products'];
     t.classList.toggle('active', tabs[i] === name);
   });
   document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
@@ -376,7 +417,139 @@ function updateStats(members) {
   document.getElementById('totalPts').textContent = pts.toLocaleString();
 }
 
-function renderMembers(list) {
+let allProducts = [];
+
+async function loadProducts() {
+  try {
+    const { data, error } = await db.from('products').select('*').order('created_at', { ascending: false });
+    if (error) throw error;
+    allProducts = data || [];
+    renderProducts(allProducts);
+  } catch(e) {
+    toast('Failed to load products: ' + e.message, true);
+  }
+}
+
+function renderProducts(list) {
+  document.getElementById('productsLoading').style.display = 'none';
+  const table = document.getElementById('productsTable');
+  const body = document.getElementById('productsBody');
+  const noRes = document.getElementById('productsNoResults');
+  if (!list.length) { table.style.display = 'none'; noRes.style.display = 'block'; return; }
+  noRes.style.display = 'none'; table.style.display = 'table';
+  body.innerHTML = list.map(p => {
+    return `<tr>
+      <td class="name">${p.name}</td>
+      <td>${p.category || '-'}</td>
+      <td>${(p.tags || '').toString()}</td>
+      <td>${p.stock ?? 0}</td>
+      <td>${p.badge || '-'}</td>
+      <td>${p.price || 'Members Only'}</td>
+      <td>${p.is_visible ? 'Yes' : 'No'}</td>
+      <td><div class="action-btns">
+        <button class="act-btn act-add" onclick="openProductModal('edit', '${p.id}')">Edit</button>
+        <button class="act-btn act-del" onclick="confirmDeleteProduct('${p.id}')">Delete</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function filterProducts() {
+  const q = document.getElementById('prodSearch').value.toLowerCase();
+  const cat = document.getElementById('prodCatFilter').value;
+  const filtered = allProducts.filter(p => {
+    const matchQ = !q || (p.name + p.category + (p.tags||'')).toLowerCase().includes(q);
+    const matchCat = !cat || p.category === cat;
+    return matchQ && matchCat;
+  });
+  renderProducts(filtered);
+}
+
+function openProductModal(mode, product = null) {
+  const isNew = mode === 'create';
+  if (!isNew && typeof product === 'string') {
+    product = allProducts.find(p => p.id === product) || null;
+  }
+  document.getElementById('modalTitle').textContent = isNew ? 'Add New Product' : 'Edit Product';
+  document.getElementById('modalSub').textContent = isNew ? 'Create a new menu item' : `Editing ${product?.name || ''}`;
+  document.getElementById('modalBody').innerHTML = `
+    <label>Name</label><input id="pName" type="text" value="${product?.name||''}" style="width:100%;margin-bottom:10px">
+    <label>Category</label><input id="pCategory" type="text" value="${product?.category||''}" style="width:100%;margin-bottom:10px">
+    <label>Tags (comma separated)</label><input id="pTags" type="text" value="${product?.tags||''}" style="width:100%;margin-bottom:10px">
+    <label>Badge</label><input id="pBadge" type="text" value="${product?.badge||''}" style="width:100%;margin-bottom:10px">
+    <label>Stock</label><input id="pStock" type="number" value="${product?.stock??0}" style="width:100%;margin-bottom:10px">
+    <label>Price</label><input id="pPrice" type="text" value="${product?.price||'Members Only'}" style="width:100%;margin-bottom:10px">
+    <label>Visible</label><select id="pVisible" style="width:100%;margin-bottom:10px"><option value="1" ${product?.is_visible ? 'selected' : ''}>Yes</option><option value="0" ${product?.is_visible ? '' : 'selected'}>No</option></select>
+  `;
+  document.getElementById('modalBtns').innerHTML = `
+    <button class="modal-confirm" onclick="saveProduct('${isNew ? '' : (product?.id||'')}')">${isNew ? 'Create Product' : 'Update Product'}</button>
+    <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+  `;
+  document.getElementById('modalStatus').className = 'modal-status';
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+async function saveProduct(id) {
+  const name = document.getElementById('pName').value.trim();
+  const category = document.getElementById('pCategory').value.trim();
+  const tags = document.getElementById('pTags').value.trim();
+  const badge = document.getElementById('pBadge').value.trim();
+  const stock = Number(document.getElementById('pStock').value);
+  const price = document.getElementById('pPrice').value.trim();
+  const is_visible = document.getElementById('pVisible').value === '1';
+  const status = document.getElementById('modalStatus');
+
+  if (!name) { status.textContent = 'Product name is required'; status.className = 'modal-status err'; return; }
+  status.textContent = 'Saving...'; status.className = 'modal-status ok';
+  const payload = { name, category, tags, badge, stock: isNaN(stock) ? 0 : stock, price, is_visible };
+
+  try {
+    if (id) {
+      const { error } = await db.from('products').update(payload).eq('id', id);
+      if (error) throw error;
+      toast('Product updated successfully');
+    } else {
+      const { error } = await db.from('products').insert({ ...payload }).single();
+      if (error) throw error;
+      toast('Product created successfully');
+    }
+    closeModal(); loadProducts();
+  } catch (e) {
+    status.textContent = 'Error: ' + e.message; status.className = 'modal-status err';
+  }
+}
+
+function confirmDeleteProduct(id) {
+  document.getElementById('modalTitle').textContent = 'Delete Product';
+  document.getElementById('modalSub').textContent = 'This action cannot be undone';
+  document.getElementById('modalBody').innerHTML = `<p style="color:var(--grey)">Confirm deletion of product id ${id}.</p>`;
+  document.getElementById('modalBtns').innerHTML = `
+    <button class="modal-confirm pink" onclick="deleteProduct('${id}')">Delete Product</button>
+    <button class="modal-cancel" onclick="closeModal()">Cancel</button>
+  `;
+  document.getElementById('modalStatus').className = 'modal-status';
+  document.getElementById('modalOverlay').classList.add('show');
+}
+
+async function deleteProduct(id) {
+  const status = document.getElementById('modalStatus');
+  status.textContent = 'Deleting...'; status.className = 'modal-status ok';
+  const { error } = await db.from('products').delete().eq('id', id);
+  if (error) { status.textContent = 'Error: ' + error.message; status.className = 'modal-status err'; return; }
+  toast('Product deleted');
+  closeModal(); loadProducts();
+}
+
+function closeModal(){
+  document.getElementById('modalOverlay').classList.remove('show');
+}
+
+function toast(msg, err=false){
+  const t=document.createElement('div'); t.className='toast'+(err?' err':''); t.textContent=msg; document.getElementById('toastContainer').appendChild(t);
+  setTimeout(()=>t.remove(),4000);
+}
+
+function renderMembers(list){
   document.getElementById('membersLoading').style.display = 'none';
   const table = document.getElementById('membersTable');
   const body = document.getElementById('membersBody');
