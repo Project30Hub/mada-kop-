@@ -8,5 +8,30 @@ const SUPABASE_URL = 'YOUR_SUPABASE_URL';        // e.g. https://xyzxyz.supabase
 const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY'; // long string starting with eyJ...
 
 // DO NOT change anything below this line
-const { createClient } = supabase;
-const db = createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+window.initializeSupabase = function(urlOverride, keyOverride) {
+  const url = urlOverride || SUPABASE_URL;
+  const key = keyOverride || SUPABASE_ANON_KEY;
+  
+  if (url === 'YOUR_SUPABASE_URL' || key === 'YOUR_SUPABASE_ANON_KEY') {
+    console.warn('⚠️ Supabase credentials not configured. Please update supabase_config.js with your project URL and key.');
+    return null;
+  }
+  
+  try {
+    const { createClient } = supabase;
+    const client = createClient(url, key);
+    window.supabaseClient = client;
+    return client;
+  } catch (error) {
+    console.error('Failed to initialize Supabase:', error);
+    return null;
+  }
+};
+
+// Initialize with default credentials
+window.supabaseClient = null;
+window.addEventListener('DOMContentLoaded', () => {
+  if (!window.supabaseClient && SUPABASE_URL !== 'YOUR_SUPABASE_URL') {
+    window.initializeSupabase();
+  }
+});

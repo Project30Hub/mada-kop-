@@ -129,6 +129,8 @@ const PRODUCTS = [
   {id:'robin-gold', name:'Rosin Press Gold (1g)', price:520}
 ];
 
+let supabaseClient = null;
+
 const form = {
   name: document.getElementById('custName'),
   phone: document.getElementById('custPhone'),
@@ -145,15 +147,28 @@ const form = {
 
 function formatCurrency(n){return 'R' + Number(n).toLocaleString('en-ZA',{minimumFractionDigits:2,maximumFractionDigits:2});}
 
-function toast(message){const toastEl=document.getElementById('toastMsg');toastEl.textContent=message;toastEl.style.display='flex';setTimeout(()=>toastEl.style.display='none',3200);}
+function toast(message){const toastEl=document.getElementById('toastMsg');if(toastEl){toastEl.textContent=message;toastEl.style.display='flex';setTimeout(()=>toastEl.style.display='none',3200);}}
 
 function loadProductOptions(){
   form.product.innerHTML='' ;
   PRODUCTS.forEach(p=>{const op=document.createElement('option');op.value=p.id;op.textContent=`${p.name} - ${formatCurrency(p.price)}`;form.product.appendChild(op);});
 }
 
-function getSavedOrders(){
-  try {return JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');}catch(e){return[];}
+async function getSavedOrders(){
+  try {
+    supabaseClient = window.supabaseClient || supabaseClient;
+    if (supabaseClient) {
+      const { data, error } = await supabaseClient
+        .from('delivery_orders')
+        .select('*')
+        .order('created_at', { ascending: false });
+      if (error) throw error;
+      return data || [];
+    }
+  } catch (e) {
+    console.warn('Supabase error:', e);
+  }
+  return JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');
 }
 
 function saveOrders(list){localStorage.setItem(STORAGE_KEY, JSON.stringify(list));}
@@ -173,16 +188,29 @@ function buildWhatsAppLink(targetNumber, order){
   return `https://wa.me/${targetNumber}?text=${msg}`;
 }
 
-function persistOrder(order){
-  const list = getSavedOrders();
+async function persistOrder(order){
+  try {
+    supabaseClient = window.supabaseClient || supabaseClient;
+    if (supabaseClient) {
+      const { error } = await supabaseClient
+        .from('delivery_orders')
+        .insert([order]);
+      if (error) throw error;
+      toast('✅ Order saved to database!');
+    }
+  } catch (e) {
+    console.warn('Could not save to Supabase, using localStorage:', e);
+  }
+  
+  const list = JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');
   list.unshift(order);
-  saveOrders(list);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
   renderOrders();
 }
 
-function renderOrders(){
+async function renderOrders(){
   const body = document.getElementById('ordersBody');
-  const orders = getSavedOrders();
+  const orders = await getSavedOrders();
   if(!orders.length){
     body.innerHTML = `<tr><td colspan="8" style="color:#8f8f8f;text-align:center;padding:14px">No current orders. Create one through the form above.</td></tr>`;
     return;
@@ -193,18 +221,39 @@ function renderOrders(){
       <td>${o.id}</td>
       <td>${o.name}</td>
       <td>${o.productName} ×${o.quantity}</td>
-      <td>${formatCurrency(o.total)}</td>
-      <td><a class="small-link" href="${mapUrl}" target="_blank">Map</a></td>
-      <td><a class="small-link" href="https://wa.me/${o.phone.replace(/\D/g,'')}?text=Hi%20MadaKop%20team" target="_blank">WhatsApp</a></td>
-      <td><span class="status-chip status-${o.status.replace(/\s+/g,'').toLowerCase()}">${o.status}</span></td>
+      <td>R${o.total.toFixed(2)}</td>
+      <td><a class="small-link" href="${mapUrl}" target="_blank">🗺 Map</a></td>
+      <td><a class="small-link" href="https://wa.me/${o.phone.replace(/\D/g,'')}?text=Hi%20MadaKop%20team" target="_blank">💬</a></td>
+      <td><span class="status-chip status-${o.status.toLowerCase().replace(/\s+/g,'')}">${o.status}</span></td>
       <td><button class="btn-outline" onclick="updateOrderStatus('${o.id}','Delivered')">Mark Delivered</button></td>
     </tr>`;
   }).join('');
 }
 
+async function updateOrderStatus(orderId,newStatus){
+  try {
+    supabaseClient = window.supabaseClient || supabaseClient;
+    if (supabaseClient) {
+      const { error } = await supabaseClient
+        .from('delivery_orders')
+        .update({ status: newStatus })
+        .eq('id', orderId);
+      if (error) throw error;
+    }
+  } catch (e) {
+    console.warn('Failed to update in Supabase:', e);
+  }
+  
+  const list = JSON.parse(localStorage.getItem(STORAGE_KEY)||'[]');
+  const order = list.find(o => o.id === orderId);
+  if (order) order.status = newStatus;
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+  renderOrders();
+}
+
 function createOrder(){
   if(!form.name.value.trim() || !form.phone.value.trim() || !form.addressLine.value.trim() || !form.city.value.trim() || !form.zip.value.trim()){
-    toast('Fill all required fields before submitting.');
+    toast('❌ Fill all required fields before submitting.');
     return;
   }
   const {productTotal, deliveryFee, total, selectedProduct} = calculateTotalling();
@@ -226,45 +275,44 @@ function createOrder(){
     codDelivery: form.codDelivery.checked,
     note: form.note.value.trim(),
     status: 'New',
-    createdAt: new Date().toISOString()
+    created_at: new Date().toISOString()
   };
   persistOrder(order);
-  toast('Order stored locally. Tap WhatsApp alert next.');
+  toast('📦 Order created. Send WhatsApp alerts next.');
   return order;
 }
 
 function sendAlerts(order){
   const adminUrl = buildWhatsAppLink(ADMIN_NUMBER, order);
   const driverUrl = buildWhatsAppLink(DRIVER_NUMBER, order);
-
   window.open(adminUrl,'_blank');
   setTimeout(()=>window.open(driverUrl,'_blank'),200);
-
-  toast('WhatsApp alerts generated for admin and driver.');
+  toast('✅ WhatsApp alerts sent to admin and driver!');
 }
 
-function updateOrderStatus(orderId,newStatus){
-  const orders = getSavedOrders();
-  const found = orders.find(o=>o.id===orderId);
-  if(!found) return;
-  found.status = newStatus;
-  saveOrders(orders);
-  renderOrders();
-}
-
-window.addEventListener('DOMContentLoaded',()=>{
+window.addEventListener('DOMContentLoaded',async ()=>{
   loadProductOptions();
   renderOrders();
-  document.getElementById('submitOrder').addEventListener('click',()=>{
-    const order = createOrder();
-    if(order) {
-      if(confirm('Send WhatsApp alerts now?')) sendAlerts(order);
-    }
-  });
-  document.getElementById('sendToWhatsApp').addEventListener('click',()=>{
-    const order = createOrder();
-    if(order) sendAlerts(order);
-  });
+  
+  const submitBtn = document.getElementById('submitOrder');
+  const whatsappBtn = document.getElementById('sendToWhatsApp');
+  
+  if (submitBtn) {
+    submitBtn.addEventListener('click',()=>{
+      const order = createOrder();
+      if(order) {
+        if(confirm('Send WhatsApp alerts to admin and driver now?')) sendAlerts(order);
+      }
+    });
+  }
+  
+  if (whatsappBtn) {
+    whatsappBtn.addEventListener('click',()=>{
+      const order = createOrder();
+      if(order) sendAlerts(order);
+    });
+  }
+  
   form.product.addEventListener('change',calculateTotalling);
   form.qty.addEventListener('input',calculateTotalling);
   calculateTotalling();
