@@ -5,7 +5,7 @@
 // ============================================================
 
 const SUPABASE_URL = 'https://rpufhpgftrmqavmyolwi.supabase.co';
-const SUPABASE_ANON_KEY = 'sb_secret_DkJpbg7Nyo1u-Sj16bgu3A_jPaKGWDP';
+const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJwdWZocGdmdHJtcWF2bXlvbHdpIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzIzOTUxNjAsImV4cCI6MjA4Nzk3MTE2MH0.hFRlsGNh_o_Oql-XigFOEh0WA_evL_Ja6OoUIUhzY38';
 
 // DO NOT change anything below this line
 window.initializeSupabase = function(urlOverride, keyOverride) {
