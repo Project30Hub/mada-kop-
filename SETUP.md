@@ -59,6 +59,21 @@ ALTER TABLE delivery_orders ENABLE ROW LEVEL SECURITY;
 -- Allow anyone to read/write orders
 CREATE POLICY "public_delivery_orders" ON delivery_orders
 FOR ALL USING (true) WITH CHECK (true);
+
+-- Driver login table
+CREATE TABLE IF NOT EXISTS drivers (
+  id UUID PRIMARY KEY DEFAULT uuid_generate_v4(),
+  username TEXT UNIQUE NOT NULL,
+  password TEXT NOT NULL,
+  display_name TEXT,
+  is_active BOOLEAN DEFAULT TRUE,
+  created_at TIMESTAMPTZ DEFAULT NOW()
+);
+
+-- Example driver (change password before production)
+INSERT INTO drivers (username, password, display_name)
+VALUES ('driver1', 'driver2025', 'Driver One')
+ON CONFLICT (username) DO NOTHING;
 ```
 
 ---
@@ -86,10 +101,11 @@ FOR ALL USING (true) WITH CHECK (true);
 
 ### 4. Driver Gets Delivery
 - Open `driver.html`
-- Enter Supabase credentials + password: `driver2025`
+- Enter Supabase credentials (URL + anon key)
+- Enter driver username/password from `drivers` table (e.g. `driver1` / `driver2025`)
 - See dashboard with stats: total orders, new, picked, delivered
 - Click **"View Details"** on any order
-- See full customer address, phone,  notes
+- See full customer address, phone, notes
 - Click **"Pick Up"** to change status to "Picked"
 - Click **"Deliver"** to mark as "Delivered"
 
@@ -104,10 +120,12 @@ const ADMIN_PASSWORD = 'madakop2025';   // ← Change this!
 ```
 
 ### Driver Password
-Edit `driver.html`, find line ~170:
-```javascript
-const DRIVER_PASSWORD = 'driver2025';   // ← Change this!
-```
+Driver login is now from the `drivers` table in Supabase.
+- You can update the driver password in the table directly:
+```sql
+UPDATE drivers SET password='newpass' WHERE username='driver1';
+``` 
+- For improved security, replace plaintext password storage with hashed values and service-side validation.
 
 ---
 

@@ -118,9 +118,22 @@ a{text-decoration:none;color:inherit}
     <input class="g-input" id="driverUrl" type="text" placeholder="https://xxxx.supabase.co" autocomplete="off">
     <label class="g-label" for="driverKey">Supabase Anon Key</label>
     <input class="g-input" id="driverKey" type="text" placeholder="eyJ..." autocomplete="off">
+    <label class="g-label" for="driverUser">Driver Username</label>
+    <input class="g-input" id="driverUser" type="text" placeholder="driver1" autocomplete="off">
     <label class="g-label" for="driverPass">Driver Password</label>
     <input class="g-input" id="driverPass" type="password" placeholder="Enter driver password">
     <button class="g-btn" id="driverLoginBtn" onclick="driverLogin()">Login to Dashboard →</button>
+
+    <hr style="margin:18px 0;border:1px solid rgba(255,255,255,.08)">
+
+    <div style="margin-bottom:10px;color:var(--grey);font-size:.78rem;">New here? Create a driver account</div>
+    <label class="g-label" for="newDriverName">Full Name</label>
+    <input class="g-input" id="newDriverName" type="text" placeholder="Driver display name" autocomplete="off">
+    <label class="g-label" for="newDriverUser">Username</label>
+    <input class="g-input" id="newDriverUser" type="text" placeholder="driver1" autocomplete="off">
+    <label class="g-label" for="newDriverPass">Password</label>
+    <input class="g-input" id="newDriverPass" type="password" placeholder="Create driver password">
+    <button class="g-btn" id="createDriverBtn" onclick="createDriverAccount()">Create Driver Account</button>
     <div class="g-err" id="driverErr"></div>
   </div>
 </div>
@@ -198,54 +211,147 @@ a{text-decoration:none;color:inherit}
 
 <script>
 // ══════════════════════════════════════════════════
-//  DRIVER CONFIG — Change this password!
+//  DRIVER CONFIG — Database-based driver login
 // ══════════════════════════════════════════════════
-const DRIVER_PASSWORD = 'driver2025';   // ← Change this to your own password!
-// Supabase credentials are entered at login
+// No shared password required. Auth is via a Supabase table `drivers`.
+// Supabase credentials are entered at login.
 // ══════════════════════════════════════════════════
 
 let db = null;
 let allOrders = [];
+let currentDriver = null;
 
 // ── DRIVER LOGIN ──────────────────────────────────────────
-function driverLogin() {
+async function driverLogin() {
   const url = document.getElementById('driverUrl').value.trim();
   const key = document.getElementById('driverKey').value.trim();
+  const user = document.getElementById('driverUser').value.trim();
   const pass = document.getElementById('driverPass').value.trim();
   const err = document.getElementById('driverErr');
   const btn = document.getElementById('driverLoginBtn');
   err.classList.remove('show');
 
   if (!url || !key) { err.textContent = 'Please enter your Supabase URL and key.'; err.classList.add('show'); return; }
-  if (pass !== DRIVER_PASSWORD) { err.textContent = 'Incorrect driver password.'; err.classList.add('show'); return; }
+  if (!user || !pass) { err.textContent = 'Please enter driver username and password.'; err.classList.add('show'); return; }
 
   btn.textContent = 'Connecting...'; btn.classList.add('loading');
 
   const { createClient } = supabase;
   db = createClient(url, key);
 
-  // Test connection
-  db.from('delivery_orders').select('id', { count: 'exact', head: true }).then(({ error }) => {
-    if (error) {
-      err.textContent = 'Could not connect to Supabase. Check your URL and key.';
-      err.classList.add('show');
-      btn.textContent = 'Login to Dashboard →';
-      btn.classList.remove('loading');
-      db = null;
-      return;
-    }
-    // Save session
-    sessionStorage.setItem('driver_url', url);
-    sessionStorage.setItem('driver_key', key);
-    sessionStorage.setItem('driver_auth', 'true');
-    showDriverDashboard();
-  });
+  // Check the driver record (simple cleartext password in DB - update to hash for production).
+  const { data, error } = await db
+    .from('drivers')
+    .select('id, username, display_name, is_active')
+    .eq('username', user)
+    .eq('password', pass)
+    .single();
+
+  if (error || !data || !data.is_active) {
+    err.textContent = 'Invalid driver username/password or account is inactive.';
+    err.classList.add('show');
+    btn.textContent = 'Login to Dashboard →';
+    btn.classList.remove('loading');
+    db = null;
+    return;
+  }
+
+  currentDriver = data;
+
+  // Save session safely (not password)
+  sessionStorage.setItem('driver_url', url);
+  sessionStorage.setItem('driver_key', key);
+  sessionStorage.setItem('driver_auth', 'true');
+  sessionStorage.setItem('driver_user', user);
+  sessionStorage.setItem('driver_name', data.display_name || data.username);
+
+  showDriverDashboard();
 }
+
+async function createDriverAccount() {
+  const url = document.getElementById('driverUrl').value.trim();
+  const key = document.getElementById('driverKey').value.trim();
+  const displayName = document.getElementById('newDriverName').value.trim();
+  const username = document.getElementById('newDriverUser').value.trim();
+  const password = document.getElementById('newDriverPass').value.trim();
+  const err = document.getElementById('driverErr');
+  const btn = document.getElementById('createDriverBtn');
+
+  err.classList.remove('show');
+  err.style.color = '#ff4444';
+
+  if (!url || !key) {
+    err.textContent = 'Please enter Supabase URL + key first.';
+    err.classList.add('show');
+    return;
+  }
+  if (!displayName || !username || !password) {
+    err.textContent = 'Please fill in name, username and password.';
+    err.classList.add('show');
+    return;
+  }
+
+  btn.textContent = 'Creating...';
+  btn.classList.add('loading');
+
+  const { createClient } = supabase;
+  const client = createClient(url, key);
+
+  const { data: existing, error: checkErr } = await client
+    .from('drivers')
+    .select('id')
+    .eq('username', username)
+    .single();
+
+  if (checkErr && checkErr.code !== 'PGRST116') {
+    err.textContent = 'Unable to check username availability.';
+    err.classList.add('show');
+    btn.textContent = 'Create Driver Account';
+    btn.classList.remove('loading');
+    return;
+  }
+
+  if (existing) {
+    err.textContent = 'Username already exists; choose another one.';
+    err.classList.add('show');
+    btn.textContent = 'Create Driver Account';
+    btn.classList.remove('loading');
+    return;
+  }
+
+  const { error: insertErr } = await client
+    .from('drivers')
+    .insert([{ username, password, display_name: displayName, is_active: true }]);
+
+  if (insertErr) {
+    err.textContent = 'Could not create driver account; check table permissions.';
+    err.classList.add('show');
+    btn.textContent = 'Create Driver Account';
+    btn.classList.remove('loading');
+    return;
+  }
+
+  err.style.color = '#bfff3c';
+  err.textContent = 'Driver account created successfully. Now login below.';
+  err.classList.add('show');
+
+  btn.textContent = 'Create Driver Account';
+  btn.classList.remove('loading');
+
+  document.getElementById('driverUser').value = username;
+  document.getElementById('driverPass').value = password;
+  document.getElementById('newDriverName').value = '';
+  document.getElementById('newDriverUser').value = '';
+  document.getElementById('newDriverPass').value = '';
+  setTimeout(() => err.classList.remove('show'), 3000);
+}
+
 
 function showDriverDashboard() {
   document.getElementById('driverGate').style.display = 'none';
   document.getElementById('driverWrap').classList.add('show');
-  document.getElementById('driverGreeting').textContent = 'Welcome, Driver';
+  const driverName = sessionStorage.getItem('driver_name') || (currentDriver ? currentDriver.display_name || currentDriver.username : 'Driver');
+  document.getElementById('driverGreeting').textContent = `Welcome, ${driverName}`;
   loadDriverOrders();
 }
 
