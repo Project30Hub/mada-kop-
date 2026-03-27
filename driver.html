@@ -288,7 +288,7 @@ async function createDriverAccount() {
   // Initialize Supabase with hardcoded credentials
   const client = window.initializeSupabase();
   if (!client) {
-    err.textContent = 'Supabase not configured. Please update supabase_config.js with your credentials.';
+    err.textContent = 'Supabase not configured. Please check supabase_config.js has valid credentials.';
     err.classList.add('show');
     btn.textContent = 'Create Driver Account';
     btn.classList.remove('loading');
@@ -302,7 +302,8 @@ async function createDriverAccount() {
     .single();
 
   if (checkErr && checkErr.code !== 'PGRST116') {
-    err.textContent = 'Unable to check username availability.';
+    console.error('Username check error:', checkErr);
+    err.textContent = `Database error: ${checkErr.message || 'Unable to check username availability.'}`;
     err.classList.add('show');
     btn.textContent = 'Create Driver Account';
     btn.classList.remove('loading');
@@ -322,7 +323,8 @@ async function createDriverAccount() {
     .insert([{ username, password, display_name: displayName, is_active: true }]);
 
   if (insertErr) {
-    err.textContent = 'Could not create driver account; check table permissions.';
+    console.error('Driver creation error:', insertErr);
+    err.textContent = `Failed to create account: ${insertErr.message || 'Database error'}`;
     err.classList.add('show');
     btn.textContent = 'Create Driver Account';
     btn.classList.remove('loading');
