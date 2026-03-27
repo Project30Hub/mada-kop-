@@ -5,7 +5,7 @@
 // ============================================================
 
 const SUPABASE_URL = 'https://rpufhpgftrmqavmyolwi.supabase.co';
-const SUPABASE_ANON_KEY = 're_NbjYFTTa_3QGiZTK4CHwq9oSfXGnhoLzv';
+const SUPABASE_ANON_KEY = 'sb_secret_DkJpbg7Nyo1u-Sj16bgu3A_jPaKGWDP';
 
 // DO NOT change anything below this line
 window.initializeSupabase = function(urlOverride, keyOverride) {
