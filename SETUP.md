@@ -32,7 +32,7 @@ const SUPABASE_ANON_KEY = 'eyJ...your-key...';
 In your Supabase dashboard, go to **SQL Editor** and run:
 
 ```sql
-CREATE TABLE delivery_orders (
+CREATE TABLE IF NOT EXISTS delivery_orders (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   phone TEXT NOT NULL,
