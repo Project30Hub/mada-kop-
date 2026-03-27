@@ -199,6 +199,13 @@ UPDATE drivers SET password='newpass' WHERE username='driver1';
 - Restrict access as needed (optional)
 - Monitor usage & scaling
 
+### Environment Variables (Vercel)
+Set these in your Vercel dashboard → Project Settings → Environment Variables:
+
+| Variable | Description | Where to Get |
+|----------|-------------|--------------|
+| `RESEND_API_KEY` | API key for sending welcome emails | [Resend Dashboard](https://resend.com/api-keys) |
+
 ---
 
 ## 📞 Support

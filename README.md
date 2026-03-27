@@ -98,6 +98,7 @@ points_log
 | Variable | Description |
 |----------|-------------|
 | `ANTHROPIC_API_KEY` | Claude API key for the AI chatbot |
+| `RESEND_API_KEY` | Resend API key for welcome emails |
 
 ---
 

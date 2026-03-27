@@ -113,14 +113,10 @@ a{text-decoration:none;color:inherit}
       </div>
     </div>
     <div class="gate-title">Driver Login</div>
-    <div class="gate-sub">Enter your Supabase credentials to access the driver dashboard.</div>
-    <label class="g-label" for="driverUrl">Supabase URL</label>
-    <input class="g-input" id="driverUrl" type="text" placeholder="https://xxxx.supabase.co" autocomplete="off">
-    <label class="g-label" for="driverKey">Supabase Anon Key</label>
-    <input class="g-input" id="driverKey" type="text" placeholder="eyJ..." autocomplete="off">
-    <label class="g-label" for="driverUser">Driver Username</label>
+    <div class="gate-sub">Enter your driver credentials to access the dashboard.</div>
+    <label class="g-label" for="driverUser">Username</label>
     <input class="g-input" id="driverUser" type="text" placeholder="driver1" autocomplete="off">
-    <label class="g-label" for="driverPass">Driver Password</label>
+    <label class="g-label" for="driverPass">Password</label>
     <input class="g-input" id="driverPass" type="password" placeholder="Enter driver password">
     <button class="g-btn" id="driverLoginBtn" onclick="driverLogin()">Login to Dashboard →</button>
 
@@ -211,10 +207,10 @@ a{text-decoration:none;color:inherit}
 
 <script>
 // ══════════════════════════════════════════════════
-//  DRIVER CONFIG — Database-based driver login
+//  DRIVER CONFIG — Simple login with hardcoded Supabase
 // ══════════════════════════════════════════════════
-// No shared password required. Auth is via a Supabase table `drivers`.
-// Supabase credentials are entered at login.
+// Uses credentials from supabase_config.js
+// No need to enter URL/key - just username/password
 // ══════════════════════════════════════════════════
 
 let db = null;
@@ -223,21 +219,25 @@ let currentDriver = null;
 
 // ── DRIVER LOGIN ──────────────────────────────────────────
 async function driverLogin() {
-  const url = document.getElementById('driverUrl').value.trim();
-  const key = document.getElementById('driverKey').value.trim();
   const user = document.getElementById('driverUser').value.trim();
   const pass = document.getElementById('driverPass').value.trim();
   const err = document.getElementById('driverErr');
   const btn = document.getElementById('driverLoginBtn');
   err.classList.remove('show');
 
-  if (!url || !key) { err.textContent = 'Please enter your Supabase URL and key.'; err.classList.add('show'); return; }
   if (!user || !pass) { err.textContent = 'Please enter driver username and password.'; err.classList.add('show'); return; }
 
   btn.textContent = 'Connecting...'; btn.classList.add('loading');
 
-  const { createClient } = supabase;
-  db = createClient(url, key);
+  // Initialize Supabase with hardcoded credentials
+  db = window.initializeSupabase();
+  if (!db) {
+    err.textContent = 'Supabase not configured. Please update supabase_config.js with your credentials.';
+    err.classList.add('show');
+    btn.textContent = 'Login to Dashboard →';
+    btn.classList.remove('loading');
+    return;
+  }
 
   // Check the driver record (simple cleartext password in DB - update to hash for production).
   const { data, error } = await db
@@ -259,8 +259,6 @@ async function driverLogin() {
   currentDriver = data;
 
   // Save session safely (not password)
-  sessionStorage.setItem('driver_url', url);
-  sessionStorage.setItem('driver_key', key);
   sessionStorage.setItem('driver_auth', 'true');
   sessionStorage.setItem('driver_user', user);
   sessionStorage.setItem('driver_name', data.display_name || data.username);
@@ -269,8 +267,6 @@ async function driverLogin() {
 }
 
 async function createDriverAccount() {
-  const url = document.getElementById('driverUrl').value.trim();
-  const key = document.getElementById('driverKey').value.trim();
   const displayName = document.getElementById('newDriverName').value.trim();
   const username = document.getElementById('newDriverUser').value.trim();
   const password = document.getElementById('newDriverPass').value.trim();
@@ -280,11 +276,6 @@ async function createDriverAccount() {
   err.classList.remove('show');
   err.style.color = '#ff4444';
 
-  if (!url || !key) {
-    err.textContent = 'Please enter Supabase URL + key first.';
-    err.classList.add('show');
-    return;
-  }
   if (!displayName || !username || !password) {
     err.textContent = 'Please fill in name, username and password.';
     err.classList.add('show');
@@ -294,8 +285,15 @@ async function createDriverAccount() {
   btn.textContent = 'Creating...';
   btn.classList.add('loading');
 
-  const { createClient } = supabase;
-  const client = createClient(url, key);
+  // Initialize Supabase with hardcoded credentials
+  const client = window.initializeSupabase();
+  if (!client) {
+    err.textContent = 'Supabase not configured. Please update supabase_config.js with your credentials.';
+    err.classList.add('show');
+    btn.textContent = 'Create Driver Account';
+    btn.classList.remove('loading');
+    return;
+  }
 
   const { data: existing, error: checkErr } = await client
     .from('drivers')
@@ -357,8 +355,8 @@ function showDriverDashboard() {
 
 function driverSignOut() {
   sessionStorage.removeItem('driver_auth');
-  sessionStorage.removeItem('driver_url');
-  sessionStorage.removeItem('driver_key');
+  sessionStorage.removeItem('driver_user');
+  sessionStorage.removeItem('driver_name');
   location.reload();
 }
 
@@ -552,12 +550,11 @@ function showToast(message, type = '') {
 // ── AUTO-LOGIN FROM SESSION ─────────────────────────
 window.addEventListener('DOMContentLoaded', () => {
   const auth = sessionStorage.getItem('driver_auth');
-  const url = sessionStorage.getItem('driver_url');
-  const key = sessionStorage.getItem('driver_key');
-  if (auth === 'true' && url && key) {
-    const { createClient } = supabase;
-    db = createClient(url, key);
-    showDriverDashboard();
+  if (auth === 'true') {
+    db = window.initializeSupabase();
+    if (db) {
+      showDriverDashboard();
+    }
   }
 });
 </script>
