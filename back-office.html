@@ -1,0 +1,370 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'>
+<meta name='robots' content='noindex,nofollow'>
+<title>MadaKop Back Office</title>
+<style>
+:root{--bg:#0b0b0f;--card:#15151c;--line:#262633;--text:#f4f4f7;--mute:#9a9ab0;--lime:#a3e635;--pink:#ff2d95;--warn:#fbbf24;--bad:#f87171}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,'Segoe UI',Roboto,sans-serif}
+h2{margin:0 0 12px;font-size:18px}
+header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5}
+.brand{font-weight:900;letter-spacing:1px;color:var(--lime)}.brand span{color:var(--pink)}.brand small{color:var(--mute);font-weight:500;letter-spacing:0;margin-left:6px}
+.who{display:flex;gap:10px;align-items:center;color:var(--mute);font-size:13px}
+nav{display:flex;gap:6px;padding:10px 16px;overflow-x:auto;border-bottom:1px solid var(--line)}
+nav button{background:var(--card);color:var(--mute);border:1px solid var(--line);border-radius:999px;padding:8px 16px;cursor:pointer;white-space:nowrap}
+nav button.on{background:var(--lime);color:#0b0b0f;border-color:var(--lime);font-weight:700}
+main{padding:16px;max-width:1100px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px}
+.grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(150px,1fr));gap:12px;margin-bottom:16px}
+.stat b{display:block;font-size:26px;color:var(--lime)}.stat span{color:var(--mute);font-size:13px}
+.stat.pink b{color:var(--pink)}
+.bar{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+input,select,textarea{background:#0f0f15;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:9px 11px;font:inherit;min-width:0}
+input:focus,select:focus{outline:2px solid var(--pink);outline-offset:0}
+.btn{background:var(--lime);color:#0b0b0f;border:0;border-radius:10px;padding:9px 16px;font-weight:700;cursor:pointer}
+.btn.pink{background:var(--pink);color:#fff}
+.ghost{background:transparent;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:7px 12px;cursor:pointer}
+.btn:disabled,.ghost:disabled{opacity:.4;cursor:not-allowed}
+.tw{overflow-x:auto;border:1px solid var(--line);border-radius:14px}
+table{width:100%;border-collapse:collapse;min-width:640px}
+th,td{padding:10px 12px;text-align:left;border-bottom:1px solid var(--line);vertical-align:middle}
+th{color:var(--mute);font-weight:600;font-size:12px;text-transform:uppercase;letter-spacing:.5px}
+tr:last-child td{border-bottom:0}
+tr.click{cursor:pointer}tr.click:hover{background:#1b1b24}
+td input[type=number]{width:90px}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;background:#26263a;color:var(--text)}
+.s-new{background:var(--pink);color:#fff}.s-confirmed{background:#3b82f6;color:#fff}.s-picked,.s-out_for_delivery{background:var(--warn);color:#111}.s-delivered{background:var(--lime);color:#111}.s-cancelled{background:#3a2020;color:var(--bad)}
+.center{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+.login{width:100%;max-width:360px;display:grid;gap:12px}
+.login input{width:100%}
+.err{color:var(--bad);min-height:18px;font-size:13px}
+.mute{color:var(--mute)}
+.row{display:flex;gap:10px;align-items:center;flex-wrap:wrap;margin-bottom:10px}.row label{min-width:170px}
+dialog{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:16px;padding:18px;width:min(560px,94vw)}
+dialog::backdrop{background:rgba(0,0,0,.7)}
+.links a{color:var(--lime);margin-right:14px}
+#toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#222232;border:1px solid var(--line);padding:10px 16px;border-radius:10px;z-index:20}
+#toast.bad{border-color:var(--bad);color:var(--bad)}
+</style>
+</head>
+<body>
+
+<section id='login' class='center'>
+  <form id='loginForm' class='card login'>
+    <div class='brand' style='font-size:22px'>MADA<span>KOP</span> <small>Back Office</small></div>
+    <input id='email' type='email' placeholder='Email' autocomplete='username' required>
+    <input id='password' type='password' placeholder='Password' autocomplete='current-password' required>
+    <button class='btn' type='submit'>Sign in</button>
+    <div class='err' id='loginMsg'></div>
+  </form>
+</section>
+
+<div id='app' hidden>
+  <header>
+    <div class='brand'>MADA<span>KOP</span> <small>Back Office</small></div>
+    <div class='who'><span id='who'></span><button class='ghost' id='logout'>Sign out</button></div>
+  </header>
+  <nav id='tabs'>
+    <button data-tab='dash' class='on'>Dashboard</button>
+    <button data-tab='orders'>Orders</button>
+    <button data-tab='products'>Products</button>
+    <button data-tab='members'>Members</button>
+    <button data-tab='settings'>Settings</button>
+  </nav>
+  <main>
+    <section id='tab-dash'>
+      <div class='grid' id='stats'></div>
+      <div class='grid' style='grid-template-columns:repeat(auto-fit,minmax(280px,1fr))'>
+        <div class='card'><h2>Orders by status</h2><div id='byStatus' class='mute'></div></div>
+        <div class='card'><h2>Low stock (5 or fewer)</h2><div id='lowStock' class='mute'></div></div>
+      </div>
+    </section>
+
+    <section id='tab-orders' hidden>
+      <div class='bar'>
+        <select id='oStatus'><option value='open'>Open orders</option><option value=''>All</option><option value='new'>New</option><option value='confirmed'>Confirmed</option><option value='picked'>Picked</option><option value='out_for_delivery'>Out for delivery</option><option value='delivered'>Delivered</option><option value='cancelled'>Cancelled</option></select>
+        <input id='oSearch' placeholder='Search order #, name, phone' style='flex:1;min-width:180px'>
+        <button class='ghost' id='oExport'>Export CSV</button>
+      </div>
+      <div class='tw'><table><thead><tr><th>Order</th><th>Customer</th><th>Total</th><th>Status</th><th>Driver</th><th>Placed</th></tr></thead><tbody id='ordersBody'></tbody></table></div>
+    </section>
+
+    <section id='tab-products' hidden>
+      <div class='card' style='margin-bottom:12px'>
+        <h2>Add product</h2>
+        <div class='bar' style='margin:0'>
+          <input id='pName' placeholder='Name' style='flex:2;min-width:160px'>
+          <input id='pCat' placeholder='Category' style='flex:1;min-width:110px'>
+          <input id='pPrice' type='number' min='0' step='0.5' placeholder='Price (R)' style='width:110px'>
+          <input id='pStock' type='number' min='0' step='1' placeholder='Stock' style='width:90px'>
+          <button class='btn' id='pAdd'>Add</button>
+        </div>
+      </div>
+      <div class='tw'><table><thead><tr><th>Product</th><th>Category</th><th>Price (R)</th><th>Stock</th><th>Active</th><th></th></tr></thead><tbody id='productsBody'></tbody></table></div>
+    </section>
+
+    <section id='tab-members' hidden>
+      <div class='bar'>
+        <select id='mStatus'><option value=''>All statuses</option><option value='pending'>Pending</option><option value='active'>Active</option><option value='suspended'>Suspended</option></select>
+        <select id='mRole'><option value=''>All roles</option><option value='member'>Members</option><option value='driver'>Drivers</option><option value='staff'>Staff</option><option value='admin'>Admins</option></select>
+        <input id='mSearch' placeholder='Search name, email, phone' style='flex:1;min-width:180px'>
+      </div>
+      <div class='tw'><table><thead><tr><th>Member</th><th>Points</th><th>Status</th><th>Role</th><th></th></tr></thead><tbody id='membersBody'></tbody></table></div>
+      <div class='card admin-only' style='margin-top:12px'>
+        <h2>Create driver / staff login</h2>
+        <div class='bar' style='margin:0'>
+          <input id='nName' placeholder='Full name' style='flex:1;min-width:140px'>
+          <input id='nPhone' placeholder='Phone' style='width:140px'>
+          <input id='nEmail' type='email' placeholder='Email' style='flex:1;min-width:160px'>
+          <input id='nPass' type='password' placeholder='Password (10+ chars)' autocomplete='new-password' style='flex:1;min-width:150px'>
+          <select id='nRole'><option value='driver'>Driver</option><option value='staff'>Staff</option></select>
+          <button class='btn pink' id='nAdd'>Create</button>
+        </div>
+      </div>
+    </section>
+
+    <section id='tab-settings' hidden>
+      <div id='settingsBox'></div>
+    </section>
+  </main>
+</div>
+
+<dialog id='dlg'><div id='dlgBody'></div></dialog>
+<div id='toast' hidden></div>
+
+<script>
+const $ = (s, el) => (el || document).querySelector(s);
+const $$ = (s, el) => Array.from((el || document).querySelectorAll(s));
+// every piece of server data is escaped before it touches innerHTML
+const esc = s => String(s == null ? '' : s).split('&').join('&amp;').split('<').join('&lt;').split('>').join('&gt;').split(String.fromCharCode(39)).join('&#39;');
+const money = n => 'R' + Number(n || 0).toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const when = d => d ? new Date(d).toLocaleString('en-ZA', { dateStyle: 'medium', timeStyle: 'short' }) : '';
+const STATUS = { new: 'New', confirmed: 'Confirmed', picked: 'Picked', out_for_delivery: 'Out for delivery', delivered: 'Delivered', cancelled: 'Cancelled' };
+const badge = s => `<span class='badge s-${esc(s)}'>${esc(STATUS[s] || s)}</span>`;
+
+let S = null;
+try { S = JSON.parse(sessionStorage.getItem('mk_session')); } catch (e) { S = null; }
+let drivers = [], ordersById = {}, tab = 'dash', poll = null;
+const isAdmin = () => S && S.profile && S.profile.role === 'admin';
+
+function toast(msg, bad) {
+  const t = $('#toast');
+  t.textContent = msg; t.className = bad ? 'bad' : ''; t.hidden = false;
+  clearTimeout(toast.t); toast.t = setTimeout(() => { t.hidden = true; }, 3200);
+}
+function save(j) { S = j; sessionStorage.setItem('mk_session', JSON.stringify(j)); }
+function signOut() {
+  sessionStorage.removeItem('mk_session'); S = null; clearInterval(poll);
+  $('#app').hidden = true; $('#login').hidden = false;
+}
+async function refresh() {
+  if (!S || !S.refresh_token) return false;
+  const r = await fetch('/api/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'refresh', refresh_token: S.refresh_token }) });
+  if (!r.ok) return false;
+  save(await r.json());
+  return true;
+}
+async function api(path, opts) {
+  opts = opts || {};
+  const go = () => fetch(path, {
+    method: opts.method || 'GET',
+    headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + (S ? S.access_token : '') },
+    body: opts.body ? JSON.stringify(opts.body) : undefined
+  });
+  let r = await go();
+  if (r.status === 401 && await refresh()) r = await go();
+  if (r.status === 401) { signOut(); throw new Error('Session expired, please sign in again'); }
+  if (opts.raw) { if (!r.ok) throw new Error('Request failed'); return r; }
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || 'Request failed');
+  return j;
+}
+const guard = fn => async (...a) => { try { await fn(...a); } catch (e) { toast(e.message, true); } };
+
+// ---------- login ----------
+$('#loginForm').addEventListener('submit', async e => {
+  e.preventDefault();
+  const msg = $('#loginMsg'); msg.textContent = '';
+  try {
+    const r = await fetch('/api/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'login', email: $('#email').value, password: $('#password').value }) });
+    const j = await r.json().catch(() => ({}));
+    if (!r.ok) throw new Error(j.error || 'Login failed');
+    if (!j.profile || (j.profile.role !== 'staff' && j.profile.role !== 'admin')) throw new Error('This account does not have back-office access');
+    save(j); $('#password').value = ''; start();
+  } catch (err) { msg.textContent = err.message; }
+});
+$('#logout').addEventListener('click', signOut);
+
+function start() {
+  $('#login').hidden = true; $('#app').hidden = false;
+  $('#who').textContent = (S.profile.full_name || S.user.email) + ' - ' + S.profile.role;
+  $$('.admin-only').forEach(el => { el.hidden = !isAdmin(); });
+  show('dash');
+  clearInterval(poll);
+  poll = setInterval(() => { if (!$('#dlg').open && (tab === 'dash' || tab === 'orders')) load(tab); }, 30000);
+}
+
+// ---------- tabs ----------
+function show(t) {
+  tab = t;
+  $$('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
+  ['dash', 'orders', 'products', 'members', 'settings'].forEach(k => { $('#tab-' + k).hidden = k !== t; });
+  load(t);
+}
+function load(t) {
+  const fn = { dash: loadDash, orders: loadOrders, products: loadProducts, members: loadMembers, settings: loadSettings }[t];
+  return guard(fn)();
+}
+$('#tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) show(b.dataset.tab); });
+
+// ---------- dashboard ----------
+async function loadDash() {
+  const s = await api('/api/admin?resource=stats');
+  const card = (v, l, c) => `<div class='card stat ${c || ''}'><b>${esc(v)}</b><span>${esc(l)}</span></div>`;
+  $('#stats').innerHTML = card(s.orders_today, 'Orders today') + card(money(s.revenue_today), 'Revenue today') + card(s.open_orders, 'Open orders', 'pink') + card(s.members_active, 'Active members') + card(s.members_pending, 'Pending approval', 'pink') + card((s.low_stock || []).length, 'Low-stock items');
+  const by = s.by_status || {};
+  $('#byStatus').innerHTML = Object.keys(STATUS).map(k => `<div style='display:flex;justify-content:space-between;padding:4px 0'>${badge(k)}<b>${esc(by[k] || 0)}</b></div>`).join('');
+  $('#lowStock').innerHTML = (s.low_stock || []).length ? s.low_stock.map(p => `<div style='display:flex;justify-content:space-between;padding:4px 0'><span style='color:var(--text)'>${esc(p.name)}</span><b style='color:var(--warn)'>${esc(p.stock)}</b></div>`).join('') : 'All stocked up';
+}
+
+// ---------- orders ----------
+async function loadDrivers() {
+  const j = await api('/api/admin?resource=members&role=driver&status=active');
+  drivers = j.members || [];
+}
+async function loadOrders() {
+  if (!drivers.length) await loadDrivers();
+  const p = new URLSearchParams({ resource: 'orders', status: $('#oStatus').value, q: $('#oSearch').value });
+  const j = await api('/api/admin?' + p.toString());
+  ordersById = {};
+  $('#ordersBody').innerHTML = (j.orders || []).map(o => {
+    ordersById[o.id] = o;
+    return `<tr class='click' data-id='${esc(o.id)}'><td><b>${esc(o.order_number)}</b></td><td>${esc(o.customer_name)}<br><span class='mute'>${esc(o.customer_phone)}</span></td><td>${money(o.total)}</td><td>${badge(o.status)}</td><td>${o.driver ? esc(o.driver.full_name || '') : '<span class=mute>-</span>'}</td><td class='mute'>${esc(when(o.created_at))}</td></tr>`;
+  }).join('') || `<tr><td colspan='6' class='mute'>No orders found</td></tr>`;
+}
+$('#oStatus').addEventListener('change', () => load('orders'));
+let st; $('#oSearch').addEventListener('input', () => { clearTimeout(st); st = setTimeout(() => load('orders'), 350); });
+$('#ordersBody').addEventListener('click', e => { const tr = e.target.closest('tr[data-id]'); if (tr) openOrder(tr.dataset.id); });
+$('#oExport').addEventListener('click', guard(async () => {
+  const r = await api('/api/admin?resource=export', { raw: true });
+  const url = URL.createObjectURL(await r.blob());
+  const a = document.createElement('a'); a.href = url; a.download = 'madakop-orders.csv'; a.click();
+  setTimeout(() => URL.revokeObjectURL(url), 2000);
+}));
+
+function openOrder(id) {
+  const o = ordersById[id]; if (!o) return;
+  const addr = [o.address_line, o.city, o.zip].filter(Boolean).join(', ');
+  let digits = String(o.customer_phone || '').replace(/[^0-9]/g, '');
+  if (digits.startsWith('0')) digits = '27' + digits.slice(1);
+  const maps = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(addr);
+  const items = (o.items || []).map(i => `<tr><td>${esc(i.product_name)}</td><td>${esc(i.quantity)}</td><td>${money(i.line_total)}</td></tr>`).join('');
+  const sOpts = Object.keys(STATUS).map(k => `<option value='${k}' ${k === o.status ? 'selected' : ''}>${STATUS[k]}</option>`).join('');
+  const dOpts = `<option value=''>Unassigned</option>` + drivers.map(d => `<option value='${esc(d.id)}' ${o.driver && o.driver.id === d.id ? 'selected' : ''}>${esc(d.full_name || d.email)}</option>`).join('');
+  const tl = (o.events || []).slice().sort((a, b) => a.created_at < b.created_at ? -1 : 1).map(ev => `<div class='mute' style='font-size:13px'>${esc(when(ev.created_at))} - ${esc(STATUS[ev.to_status] || '')}${ev.note ? ' (' + esc(ev.note) + ')' : ''}</div>`).join('');
+  const final = o.status === 'delivered' || o.status === 'cancelled';
+  $('#dlgBody').innerHTML = `
+    <h2>${esc(o.order_number)} ${badge(o.status)}</h2>
+    <p style='margin:0 0 6px'><b>${esc(o.customer_name)}</b> - ${esc(o.customer_phone)}<br>${esc(addr)}</p>
+    ${o.delivery_note ? `<p class='mute' style='margin:0 0 6px'>Note: ${esc(o.delivery_note)}</p>` : ''}
+    <p class='links' style='margin:0 0 10px'><a href='${maps}' target='_blank' rel='noopener noreferrer'>Open in Maps</a><a href='https://wa.me/${esc(digits)}' target='_blank' rel='noopener noreferrer'>WhatsApp</a></p>
+    <div class='tw'><table style='min-width:0'><thead><tr><th>Item</th><th>Qty</th><th>Total</th></tr></thead><tbody>${items}</tbody></table></div>
+    <p style='text-align:right;margin:8px 0'>Delivery ${money(o.delivery_fee)} - <b>Total ${money(o.total)}</b><br><span class='mute'>${esc(String(o.payment_method).toUpperCase())} - ${esc(o.payment_status)}</span></p>
+    <div class='row'><label>Status</label><select id='dStatus' ${final ? 'disabled' : ''}>${sOpts}</select></div>
+    <div class='row'><label>Driver</label><select id='dDriver' ${final ? 'disabled' : ''}>${dOpts}</select></div>
+    <div class='row'><label>Note (optional)</label><input id='dNote' maxlength='300' style='flex:1' ${final ? 'disabled' : ''}></div>
+    <div style='margin:10px 0'>${tl}</div>
+    <div class='row' style='justify-content:flex-end;margin:0'><button class='ghost' id='dClose'>Close</button><button class='btn' id='dSave' ${final ? 'disabled' : ''}>Save changes</button></div>`;
+  $('#dClose').onclick = () => $('#dlg').close();
+  $('#dSave').onclick = guard(async () => {
+    const status = $('#dStatus').value !== o.status ? $('#dStatus').value : null;
+    const current = o.driver ? o.driver.id : '';
+    const driver = $('#dDriver').value !== current ? $('#dDriver').value : '';
+    if (!status && !driver && !$('#dNote').value) { $('#dlg').close(); return; }
+    await api('/api/admin?resource=orders', { method: 'PATCH', body: { order_id: o.id, status, driver_id: driver || null, note: $('#dNote').value } });
+    $('#dlg').close(); toast('Order updated'); load('orders');
+  });
+  $('#dlg').showModal();
+}
+
+// ---------- products ----------
+async function loadProducts() {
+  const j = await api('/api/admin?resource=products');
+  $('#productsBody').innerHTML = (j.products || []).map(p => `<tr data-id='${esc(p.id)}'><td>${esc(p.name)}</td><td class='mute'>${esc(p.category || '')}</td><td><input type='number' min='0' step='0.5' data-f='price' value='${esc(p.price)}'></td><td><input type='number' min='0' step='1' data-f='stock' value='${esc(p.stock)}'></td><td><input type='checkbox' data-f='is_active' ${p.is_active ? 'checked' : ''}></td><td><button class='ghost' data-act='save'>Save</button></td></tr>`).join('') || `<tr><td colspan='6' class='mute'>No products yet - add your first one above</td></tr>`;
+}
+$('#productsBody').addEventListener('click', guard(async e => {
+  const b = e.target.closest('button[data-act=save]'); if (!b) return;
+  const tr = b.closest('tr');
+  await api('/api/admin?resource=products', { method: 'PATCH', body: { id: tr.dataset.id, price: $('[data-f=price]', tr).value, stock: $('[data-f=stock]', tr).value, is_active: $('[data-f=is_active]', tr).checked } });
+  toast('Product saved');
+}));
+$('#pAdd').addEventListener('click', guard(async () => {
+  await api('/api/admin?resource=products', { method: 'POST', body: { name: $('#pName').value, category: $('#pCat').value, price: $('#pPrice').value, stock: $('#pStock').value } });
+  ['pName', 'pCat', 'pPrice', 'pStock'].forEach(i => { $('#' + i).value = ''; });
+  toast('Product added'); loadProducts();
+}));
+
+// ---------- members ----------
+async function loadMembers() {
+  const p = new URLSearchParams({ resource: 'members', status: $('#mStatus').value, role: $('#mRole').value, q: $('#mSearch').value });
+  const j = await api('/api/admin?' + p.toString());
+  const opt = (list, cur) => list.map(v => `<option value='${v}' ${v === cur ? 'selected' : ''}>${v}</option>`).join('');
+  $('#membersBody').innerHTML = (j.members || []).map(m => `<tr data-id='${esc(m.id)}'><td><b>${esc(m.full_name || '(no name)')}</b><br><span class='mute'>${esc(m.email || '')} ${esc(m.phone || '')}</span></td><td>${esc(m.points)}</td><td><select data-f='member_status'>${opt(['pending', 'active', 'suspended'], m.member_status)}</select></td><td><select data-f='role' ${isAdmin() ? '' : 'disabled'}>${opt(['member', 'driver', 'staff', 'admin'], m.role)}</select></td><td><button class='ghost' data-act='save'>Save</button></td></tr>`).join('') || `<tr><td colspan='5' class='mute'>No members found</td></tr>`;
+}
+['mStatus', 'mRole'].forEach(i => $('#' + i).addEventListener('change', () => load('members')));
+let mt; $('#mSearch').addEventListener('input', () => { clearTimeout(mt); mt = setTimeout(() => load('members'), 350); });
+$('#membersBody').addEventListener('click', guard(async e => {
+  const b = e.target.closest('button[data-act=save]'); if (!b) return;
+  const tr = b.closest('tr');
+  const body = { user_id: tr.dataset.id, member_status: $('[data-f=member_status]', tr).value };
+  if (isAdmin()) body.role = $('[data-f=role]', tr).value;
+  await api('/api/admin?resource=members', { method: 'PATCH', body });
+  toast('Member updated'); drivers = [];
+}));
+$('#nAdd').addEventListener('click', guard(async () => {
+  await api('/api/admin?resource=create-staff', { method: 'POST', body: { full_name: $('#nName').value, phone: $('#nPhone').value, email: $('#nEmail').value, password: $('#nPass').value, role: $('#nRole').value } });
+  ['nName', 'nPhone', 'nEmail', 'nPass'].forEach(i => { $('#' + i).value = ''; });
+  toast('Account created'); drivers = []; loadMembers();
+}));
+
+// ---------- settings ----------
+async function loadSettings() {
+  const j = await api('/api/admin?resource=settings');
+  const m = {}; (j.settings || []).forEach(s => { m[s.key] = s.value; });
+  const d = isAdmin() ? '' : 'disabled';
+  const fee = m.delivery_fee ? m.delivery_fee.amount : 0;
+  const rate = m.points_per_rand ? m.points_per_rand.rate : 0.1;
+  const open = m.club_open ? m.club_open.open !== false : true;
+  const req = m.require_active_member ? m.require_active_member.enabled !== false : true;
+  $('#settingsBox').innerHTML = `
+    <div class='card'>
+      <h2>Club settings</h2>
+      ${isAdmin() ? '' : `<p class='mute'>Only admins can change these.</p>`}
+      <div class='row'><label>Delivery fee (R)</label><input id='s_fee' type='number' min='0' step='0.5' value='${esc(fee)}' ${d}><button class='btn' data-set='delivery_fee' ${d}>Save</button></div>
+      <div class='row'><label>Points per R1 spent</label><input id='s_rate' type='number' min='0' max='10' step='0.01' value='${esc(rate)}' ${d}><button class='btn' data-set='points_per_rand' ${d}>Save</button></div>
+      <div class='row'><label>Accepting orders</label><input id='s_open' type='checkbox' ${open ? 'checked' : ''} ${d}><button class='btn' data-set='club_open' ${d}>Save</button></div>
+      <div class='row'><label>Only active members can order</label><input id='s_req' type='checkbox' ${req ? 'checked' : ''} ${d}><button class='btn' data-set='require_active_member' ${d}>Save</button></div>
+    </div>`;
+}
+$('#settingsBox').addEventListener('click', guard(async e => {
+  const b = e.target.closest('button[data-set]'); if (!b) return;
+  const key = b.dataset.set;
+  const value = {
+    delivery_fee: () => ({ amount: Number($('#s_fee').value) }),
+    points_per_rand: () => ({ rate: Number($('#s_rate').value) }),
+    club_open: () => ({ open: $('#s_open').checked }),
+    require_active_member: () => ({ enabled: $('#s_req').checked })
+  }[key]();
+  await api('/api/admin?resource=settings', { method: 'PATCH', body: { key, value } });
+  toast('Saved');
+}));
+
+// ---------- boot ----------
+if (S && S.access_token && S.profile && (S.profile.role === 'staff' || S.profile.role === 'admin')) start();
+</script>
+</body>
+</html>
