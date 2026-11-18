@@ -4,6 +4,7 @@
 //                 { action: 'refresh', refresh_token }
 // Returns the Supabase session + the user's role/membership so the front end can route members, drivers and staff.
 const { anonClient, serviceClient, userClient, envOk, configStatus, send, str } = require('./_lib/supabase');
+const { sendMail, staffEmails, siteUrl, welcomeEmail, newMemberStaffEmail } = require('./_lib/mail');
 
 const EMAIL = /^[^ @]+@[^ @]+[.][^ @]+$/;
 const PHONE = /^[+0-9 ()-]{7,20}$/;
@@ -63,9 +64,20 @@ module.exports = async (req, res) => {
         console.error('register error:', created.error.message);
         return send(res, 400, { error: 'Could not create the account' });
       }
+
+      // welcome email to the new member + heads-up to the club (awaited so the serverless function does not freeze first)
+      const site = siteUrl(req);
+      const staff = await staffEmails();
+      const [emailStatus] = await Promise.all([
+        sendMail({ to: email, ...welcomeEmail(fullName, site) }),
+        staff.length ? sendMail({ to: staff, ...newMemberStaffEmail({ full_name: fullName, email, phone }, site) }) : Promise.resolve('skipped')
+      ]);
+
       const { data, error } = await anonClient().auth.signInWithPassword({ email, password });
-      if (error || !data || !data.session) return send(res, 201, { ok: true, needs_login: true });
-      return send(res, 201, await sessionPayload(data.session));
+      if (error || !data || !data.session) return send(res, 201, { ok: true, needs_login: true, email_status: emailStatus });
+      const payload = await sessionPayload(data.session);
+      payload.email_status = emailStatus;
+      return send(res, 201, payload);
     }
 
     if (body.action === 'refresh') {

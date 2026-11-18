@@ -2,9 +2,10 @@
 //   GET   /api/orders?resource=me    -> my profile (name, phone, membership status, points)
 //   GET   /api/orders?resource=menu  -> active products + delivery fee + club open flag
 //   GET   /api/orders                -> my orders (with items + timeline)
-//   POST  /api/orders                -> place an order  { items:[{product_id, quantity}], customer_name, customer_phone, address_line, city, zip?, note?, payment_method? }
+//   POST  /api/orders                -> place an order  { items:[{product_id, quantity}], customer_name, customer_phone, address_line, city, zip?, note?, payment_method?, latitude?, longitude? }
 //   PATCH /api/orders                -> cancel my order (only while status is new)  { order_id }
 const { authenticate, send, fail, UUID, str } = require('./_lib/supabase');
+const { sendMail, staffEmails, siteUrl, orderConfirmEmail, newOrderStaffEmail } = require('./_lib/mail');
 
 const ORDER_SELECT = '*, items:order_items(id, product_name, unit_price, quantity, line_total), events:order_events(to_status, note, created_at)';
 const PHONE = /^[+0-9 ()-]{7,20}$/;
@@ -59,6 +60,16 @@ module.exports = async (req, res) => {
       if (!name || !address || !city) return send(res, 400, { error: 'Name, address and city are required' });
       const payment = ['cod', 'eft', 'payfast'].includes(body.payment_method) ? body.payment_method : 'cod';
 
+      // optional exact pin from the customer's phone
+      let lat = null, lng = null;
+      if (body.latitude != null && body.latitude !== '' && body.longitude != null && body.longitude !== '') {
+        lat = Number(body.latitude); lng = Number(body.longitude);
+        if (!Number.isFinite(lat) || !Number.isFinite(lng) || Math.abs(lat) > 90 || Math.abs(lng) > 180) {
+          return send(res, 400, { error: 'Invalid location' });
+        }
+        lat = Math.round(lat * 1e6) / 1e6; lng = Math.round(lng * 1e6) / 1e6;
+      }
+
       const { data, error } = await db.rpc('place_order', {
         p_items: items,
         p_customer_name: name,
@@ -67,12 +78,23 @@ module.exports = async (req, res) => {
         p_city: city,
         p_zip: str(body.zip, 12) || null,
         p_note: str(body.note, 500) || null,
-        p_payment_method: payment
+        p_payment_method: payment,
+        p_latitude: lat,
+        p_longitude: lng
       });
       if (error) return fail(res, error);
 
       const full = await db.from('orders').select(ORDER_SELECT).eq('id', data.id).maybeSingle();
-      return send(res, 201, { order: full.data || data });
+      const order = full.data || data;
+
+      // confirmation to the customer + alert to the club (awaited so the function does not freeze mid-send)
+      const site = siteUrl(req);
+      const staff = await staffEmails();
+      const [emailStatus] = await Promise.all([
+        sendMail({ to: user.email, ...orderConfirmEmail(order, site) }),
+        staff.length ? sendMail({ to: staff, ...newOrderStaffEmail(order, site) }) : Promise.resolve('skipped')
+      ]);
+      return send(res, 201, { order, email_status: emailStatus });
     }
 
     if (req.method === 'PATCH') {

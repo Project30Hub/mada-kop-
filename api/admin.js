@@ -3,6 +3,7 @@
 // Every query runs as the signed-in user, so RLS + RPC role checks are the real gatekeepers;
 // the isAdmin checks below are just friendlier errors.
 const { authenticate, serviceClient, envOk, send, fail, UUID, str } = require('./_lib/supabase');
+const { sendMail, siteUrl, approvedEmail } = require('./_lib/mail');
 
 const STATUSES = ['new', 'confirmed', 'picked', 'out_for_delivery', 'delivered', 'cancelled'];
 const OPEN = ['new', 'confirmed', 'picked', 'out_for_delivery'];
@@ -118,13 +119,19 @@ module.exports = async (req, res) => {
           if (body.member_status && !MEMBER_STATUSES.includes(body.member_status)) return send(res, 400, { error: 'Invalid membership status' });
           if (body.role && !ROLES.includes(body.role)) return send(res, 400, { error: 'Invalid role' });
           if (body.role && !isAdmin) return send(res, 403, { error: 'Only admins can change roles' });
+          const prev = await db.from('profiles').select('member_status').eq('id', body.user_id).maybeSingle();
           const { data, error } = await db.rpc('admin_update_member', {
             p_user_id: body.user_id,
             p_member_status: body.member_status || null,
             p_role: body.role || null
           });
           if (error) return fail(res, error);
-          return send(res, 200, { member: data });
+          // tell the member when they are newly approved (not on every save)
+          let emailStatus = 'skipped';
+          if (body.member_status === 'active' && prev.data && prev.data.member_status !== 'active' && data && data.email) {
+            emailStatus = await sendMail({ to: data.email, ...approvedEmail(data.full_name, siteUrl(req)) });
+          }
+          return send(res, 200, { member: data, email_status: emailStatus });
         }
         break;
       }

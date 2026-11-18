@@ -1,5 +1,5 @@
 // Driver API (drivers, plus staff/admin for testing).
-//   GET   /api/driver  -> orders assigned to me (newest first)
+//   GET   /api/driver  -> orders assigned to me (newest first), including the exact pin when the customer shared one
 //   PATCH /api/driver  -> { order_id, status: picked|out_for_delivery|delivered, note? }
 // The database enforces that a driver can only touch orders assigned to them.
 const { authenticate, send, fail, UUID, str } = require('./_lib/supabase');
@@ -13,7 +13,7 @@ module.exports = async (req, res) => {
   try {
     if (req.method === 'GET') {
       const { data, error } = await db.from('orders')
-        .select('id, order_number, status, customer_name, customer_phone, address_line, city, zip, delivery_note, payment_method, payment_status, total, created_at, delivered_at, items:order_items(product_name, quantity)')
+        .select('id, order_number, status, customer_name, customer_phone, address_line, city, zip, latitude, longitude, delivery_note, payment_method, payment_status, total, created_at, delivered_at, items:order_items(product_name, quantity)')
         .eq('driver_id', user.id).order('created_at', { ascending: false }).limit(100);
       if (error) return fail(res, error);
       return send(res, 200, { orders: data });
