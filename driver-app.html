@@ -29,6 +29,7 @@ input{background:#0f0f15;color:var(--text);border:1px solid var(--line);border-r
 .s-new{background:var(--pink);color:#fff}.s-confirmed{background:#3b82f6;color:#fff}.s-picked,.s-out_for_delivery{background:var(--warn);color:#111}.s-delivered{background:var(--lime);color:#111}
 .links a{color:var(--lime);margin-right:16px;font-weight:700}
 .cash{background:#3a2d10;color:var(--warn);border-radius:10px;padding:8px 12px;font-weight:700;margin:8px 0}
+.map{width:100%;height:190px;border:0;border-radius:10px;margin:8px 0 2px;background:#0f0f15}
 #toast{position:fixed;left:50%;bottom:20px;transform:translateX(-50%);background:#222232;border:1px solid var(--line);padding:10px 16px;border-radius:10px;z-index:30;max-width:92vw}
 #toast.bad{border-color:var(--bad);color:var(--bad)}
 </style>
@@ -65,7 +66,7 @@ const STATUS = { new: 'Awaiting confirmation', confirmed: 'Ready to collect', pi
 const NEXT = { confirmed: ['picked', 'Picked up'], picked: ['out_for_delivery', 'Out for delivery'], out_for_delivery: ['delivered', 'Mark delivered'] };
 const badge = s => `<span class='badge s-${esc(s)}'>${esc(STATUS[s] || s)}</span>`;
 
-let S = null, timer = null, orders = {};
+let S = null, timer = null, orders = {}, lastSig = '';
 try { S = JSON.parse(sessionStorage.getItem('mk_driver')); } catch (e) { S = null; }
 
 function toast(msg, bad) {
@@ -73,7 +74,7 @@ function toast(msg, bad) {
   clearTimeout(toast.t); toast.t = setTimeout(() => { t.hidden = true; }, 3500);
 }
 function save(j) { S = j; sessionStorage.setItem('mk_driver', JSON.stringify(j)); }
-function signOut() { sessionStorage.removeItem('mk_driver'); S = null; clearInterval(timer); $('#app').hidden = true; $('#login').hidden = false; }
+function signOut() { sessionStorage.removeItem('mk_driver'); S = null; lastSig = ''; clearInterval(timer); $('#app').hidden = true; $('#login').hidden = false; }
 async function refresh() {
   if (!S || !S.refresh_token) return false;
   const r = await fetch('/api/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'refresh', refresh_token: S.refresh_token }) });
@@ -115,7 +116,11 @@ function start() {
 
 function card(o) {
   const addr = [o.address_line, o.city, o.zip].filter(Boolean).join(', ');
-  const maps = 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(addr);
+  const hasPin = o.latitude != null && o.longitude != null;
+  const target = hasPin ? o.latitude + ',' + o.longitude : addr;
+  const embed = 'https://maps.google.com/maps?q=' + encodeURIComponent(target) + '&z=16&output=embed';
+  const gmaps = hasPin ? 'https://www.google.com/maps/dir/?api=1&destination=' + o.latitude + ',' + o.longitude : 'https://www.google.com/maps/dir/?api=1&destination=' + encodeURIComponent(addr);
+  const waze = hasPin ? 'https://waze.com/ul?ll=' + o.latitude + ',' + o.longitude + '&navigate=yes' : 'https://waze.com/ul?q=' + encodeURIComponent(addr) + '&navigate=yes';
   const tel = 'tel:' + String(o.customer_phone || '').replace(/[^0-9+]/g, '');
   const cash = o.payment_method === 'cod' && o.payment_status !== 'paid' && o.status !== 'delivered';
   const next = NEXT[o.status];
@@ -123,7 +128,9 @@ function card(o) {
     <div class='row'><b>${esc(o.order_number)}</b>${badge(o.status)}</div>
     <div><b>${esc(o.customer_name)}</b><br>${esc(addr)}</div>
     ${o.delivery_note ? `<div class='small mute'>Note: ${esc(o.delivery_note)}</div>` : ''}
-    <div class='links' style='margin:8px 0'><a href='${esc(tel)}'>Call</a><a href='${esc(maps)}' target='_blank' rel='noopener noreferrer'>Navigate</a></div>
+    <iframe class='map' loading='lazy' referrerpolicy='no-referrer-when-downgrade' title='Delivery location' src='${esc(embed)}'></iframe>
+    <div class='small ${hasPin ? '' : 'mute'}' style='${hasPin ? 'color:var(--lime)' : ''}'>${hasPin ? 'Exact pin shared by the customer' : 'Approximate - based on the typed address'}</div>
+    <div class='links' style='margin:8px 0'><a href='${esc(tel)}'>Call</a><a href='${esc(gmaps)}' target='_blank' rel='noopener noreferrer'>Google Maps</a><a href='${esc(waze)}' target='_blank' rel='noopener noreferrer'>Waze</a></div>
     <div class='small mute'>${(o.items || []).map(i => esc(i.quantity) + ' x ' + esc(i.product_name)).join(', ')}</div>
     ${cash ? `<div class='cash'>Collect cash: ${money(o.total)}</div>` : ''}
     ${next ? `<button class='btn ${next[0] === 'delivered' ? 'pink' : ''}' data-status='${next[0]}'>${esc(next[1])}</button>` : ''}
@@ -132,6 +139,10 @@ function card(o) {
 
 async function load() {
   const j = await api('/api/driver');
+  // only redraw when something changed, so the maps do not reload every 20 seconds
+  const sig = JSON.stringify((j.orders || []).map(o => [o.id, o.status, o.payment_status, o.latitude, o.longitude]));
+  if (sig === lastSig) return;
+  lastSig = sig;
   orders = {}; (j.orders || []).forEach(o => { orders[o.id] = o; });
   const act = (j.orders || []).filter(o => o.status !== 'delivered' && o.status !== 'cancelled');
   const done = (j.orders || []).filter(o => o.status === 'delivered').slice(0, 10);
