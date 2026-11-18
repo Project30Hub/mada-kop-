@@ -1,6 +1,7 @@
-// POST /api/auth   { action: 'login', email, password }  |  { action: 'refresh', refresh_token }
+// GET  /api/auth  -> safe configuration check (no secrets): which Supabase host and which keys are set
+// POST /api/auth  { action: 'login', email, password }  |  { action: 'refresh', refresh_token }
 // Returns the Supabase session + the user's role so the front end can route members, drivers and staff.
-const { anonClient, userClient, envOk, send } = require('./_lib/supabase');
+const { anonClient, userClient, envOk, configStatus, send } = require('./_lib/supabase');
 
 async function sessionPayload(session) {
   const { data: profile } = await userClient(session.access_token)
@@ -16,6 +17,7 @@ async function sessionPayload(session) {
 }
 
 module.exports = async (req, res) => {
+  if (req.method === 'GET') return send(res, 200, configStatus());
   if (req.method !== 'POST') return send(res, 405, { error: 'Method not allowed' });
   if (!envOk(res, false)) return;
   const body = req.body || {};
@@ -40,7 +42,7 @@ module.exports = async (req, res) => {
     }
     return send(res, 400, { error: 'Unknown action' });
   } catch (err) {
-    console.error('auth error:', err);
+    console.error('auth error:', err && err.message);
     return send(res, 500, { error: 'Something went wrong' });
   }
 };

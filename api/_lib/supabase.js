@@ -1,9 +1,20 @@
 // Shared helpers for the serverless API. (Files starting with _ are not deployed as routes.)
 const { createClient } = require('@supabase/supabase-js');
 
-const URL = process.env.SUPABASE_URL;
-const ANON = process.env.SUPABASE_ANON_KEY;
-const SERVICE = process.env.SUPABASE_SERVICE_ROLE_KEY;
+// Tolerates common copy/paste mistakes: quotes, spaces, missing https://, a path on the end, or just the project ref.
+function cleanUrl(raw) {
+  let s = String(raw || '').trim().replace(/^['"]+|['"]+$/g, '');
+  if (!s) return '';
+  if (/^[a-z]{20}$/.test(s)) return 'https://' + s + '.supabase.co';
+  if (!/^https?:[/][/]/i.test(s)) s = 'https://' + s;
+  const m = s.match(/^https?:[/][/][^/]+/i);
+  return m ? m[0] : s;
+}
+function cleanKey(raw) { return String(raw || '').trim().replace(/^['"]+|['"]+$/g, ''); }
+
+const SB_URL = cleanUrl(process.env.SUPABASE_URL);
+const ANON = cleanKey(process.env.SUPABASE_ANON_KEY);
+const SERVICE = cleanKey(process.env.SUPABASE_SERVICE_ROLE_KEY);
 const NO_SESSION = { persistSession: false, autoRefreshToken: false };
 
 function send(res, status, body) {
@@ -12,18 +23,25 @@ function send(res, status, body) {
 }
 
 function envOk(res, needService) {
-  if (!URL || !ANON || (needService && !SERVICE)) {
+  if (!SB_URL || !ANON || (needService && !SERVICE)) {
     send(res, 500, { error: 'Server is not configured yet (missing Supabase environment variables)' });
     return false;
   }
   return true;
 }
 
-function anonClient() { return createClient(URL, ANON, { auth: NO_SESSION }); }
-function serviceClient() { return createClient(URL, SERVICE, { auth: NO_SESSION }); }
+// Safe summary for debugging setup problems: never returns any key material.
+function configStatus() {
+  let host = null;
+  try { host = new globalThis.URL(SB_URL).hostname; } catch (e) { host = null; }
+  return { supabase_host: host, has_anon_key: !!ANON, has_service_key: !!SERVICE };
+}
+
+function anonClient() { return createClient(SB_URL, ANON, { auth: NO_SESSION }); }
+function serviceClient() { return createClient(SB_URL, SERVICE, { auth: NO_SESSION }); }
 // Runs queries AS the signed-in user, so Row Level Security and the RPC role checks always apply.
 function userClient(token) {
-  return createClient(URL, ANON, { auth: NO_SESSION, global: { headers: { Authorization: 'Bearer ' + token } } });
+  return createClient(SB_URL, ANON, { auth: NO_SESSION, global: { headers: { Authorization: 'Bearer ' + token } } });
 }
 
 // Verifies the bearer token, loads the profile, and (optionally) enforces a role list.
@@ -65,4 +83,4 @@ function fail(res, err) {
 const UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i;
 function str(v, max) { return String(v == null ? '' : v).trim().slice(0, max); }
 
-module.exports = { send, envOk, anonClient, serviceClient, userClient, authenticate, fail, UUID, str };
+module.exports = { send, envOk, configStatus, anonClient, serviceClient, userClient, authenticate, fail, UUID, str };
