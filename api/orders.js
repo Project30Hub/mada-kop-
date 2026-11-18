@@ -1,6 +1,7 @@
 // Member-facing orders API (any signed-in user).
-//   GET   /api/orders                -> my orders (with items + timeline)
+//   GET   /api/orders?resource=me    -> my profile (name, phone, membership status, points)
 //   GET   /api/orders?resource=menu  -> active products + delivery fee + club open flag
+//   GET   /api/orders                -> my orders (with items + timeline)
 //   POST  /api/orders                -> place an order  { items:[{product_id, quantity}], customer_name, customer_phone, address_line, city, zip?, note?, payment_method? }
 //   PATCH /api/orders                -> cancel my order (only while status is new)  { order_id }
 const { authenticate, send, fail, UUID, str } = require('./_lib/supabase');
@@ -16,6 +17,14 @@ module.exports = async (req, res) => {
   const body = req.body || {};
 
   try {
+    if (req.method === 'GET' && q.resource === 'me') {
+      const { data, error } = await db.from('profiles')
+        .select('full_name, phone, member_status, points, address_line, city, zip, role')
+        .eq('id', user.id).maybeSingle();
+      if (error) return fail(res, error);
+      return send(res, 200, { profile: data });
+    }
+
     if (req.method === 'GET' && q.resource === 'menu') {
       const [products, settings] = await Promise.all([
         db.from('products').select('id, sku, name, category, description, price, stock, image_url').eq('is_active', true).gt('stock', 0).order('category').order('name'),

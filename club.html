@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang='en'>
+<head>
+<meta charset='utf-8'>
+<meta name='viewport' content='width=device-width, initial-scale=1'>
+<title>MadaKop Club</title>
+<style>
+:root{--bg:#0b0b0f;--card:#15151c;--line:#262633;--text:#f4f4f7;--mute:#9a9ab0;--lime:#a3e635;--pink:#ff2d95;--warn:#fbbf24;--bad:#f87171}
+*{box-sizing:border-box}
+[hidden]{display:none!important}
+body{margin:0;background:var(--bg);color:var(--text);font:15px/1.45 system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;padding-bottom:80px}
+h2{margin:0 0 12px;font-size:18px}h3{margin:18px 0 8px;color:var(--lime);font-size:14px;text-transform:uppercase;letter-spacing:1px}
+header{display:flex;justify-content:space-between;align-items:center;padding:12px 16px;border-bottom:1px solid var(--line);position:sticky;top:0;background:var(--bg);z-index:5}
+.brand{font-weight:900;letter-spacing:1px;color:var(--lime)}.brand span{color:var(--pink)}
+.who{display:flex;gap:10px;align-items:center;color:var(--mute);font-size:13px}
+nav{display:flex;gap:6px;padding:10px 16px;border-bottom:1px solid var(--line)}
+nav button{background:var(--card);color:var(--mute);border:1px solid var(--line);border-radius:999px;padding:8px 18px;cursor:pointer}
+nav button.on{background:var(--lime);color:#0b0b0f;border-color:var(--lime);font-weight:700}
+main{padding:16px;max-width:760px;margin:0 auto}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px;margin-bottom:10px}
+input,select,textarea{background:#0f0f15;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:11px 12px;font:inherit;width:100%;min-width:0}
+input:focus,select:focus,textarea:focus{outline:2px solid var(--pink)}
+.btn{background:var(--lime);color:#0b0b0f;border:0;border-radius:10px;padding:12px 18px;font-weight:700;cursor:pointer;font-size:15px}
+.btn.block{width:100%}.btn.pink{background:var(--pink);color:#fff}
+.ghost{background:transparent;color:var(--text);border:1px solid var(--line);border-radius:10px;padding:8px 14px;cursor:pointer}
+.btn:disabled{opacity:.5;cursor:not-allowed}
+.center{min-height:100vh;display:flex;align-items:center;justify-content:center;padding:16px}
+.box{width:100%;max-width:380px;display:grid;gap:10px}
+.tabs{display:flex;gap:6px}.tabs button{flex:1}
+.err{color:var(--bad);min-height:18px;font-size:13px}
+.mute{color:var(--mute)}.small{font-size:13px}
+.prod{display:flex;justify-content:space-between;align-items:center;gap:10px}
+.prod b{display:block}.price{color:var(--lime);font-weight:700}
+.qty{display:flex;align-items:center;gap:8px}
+.qty button{width:34px;height:34px;border-radius:10px;border:1px solid var(--line);background:#0f0f15;color:var(--text);font-size:18px;cursor:pointer}
+.qty span{min-width:20px;text-align:center}
+.cartbar{position:fixed;left:0;right:0;bottom:0;padding:12px 16px;background:linear-gradient(transparent,var(--bg) 40%)}
+.cartbar .btn{width:100%;max-width:760px;display:block;margin:0 auto}
+.badge{display:inline-block;padding:3px 10px;border-radius:999px;font-size:12px;font-weight:700;background:#26263a}
+.s-new{background:var(--pink);color:#fff}.s-confirmed{background:#3b82f6;color:#fff}.s-picked,.s-out_for_delivery{background:var(--warn);color:#111}.s-delivered{background:var(--lime);color:#111}.s-cancelled{background:#3a2020;color:var(--bad)}
+.row{display:flex;justify-content:space-between;gap:10px;margin:4px 0}
+dialog{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:16px;padding:18px;width:min(520px,95vw);max-height:92vh}
+dialog::backdrop{background:rgba(0,0,0,.75)}
+.grid2{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.banner{background:#3a2020;color:var(--bad);border-radius:12px;padding:10px 14px;margin-bottom:12px}
+#toast{position:fixed;left:50%;bottom:90px;transform:translateX(-50%);background:#222232;border:1px solid var(--line);padding:10px 16px;border-radius:10px;z-index:30;max-width:92vw}
+#toast.bad{border-color:var(--bad);color:var(--bad)}
+</style>
+</head>
+<body>
+
+<section id='auth' class='center'>
+  <div class='box card'>
+    <div class='brand' style='font-size:24px'>MADA<span>KOP</span> <span class='mute' style='font-size:13px;letter-spacing:0'>Club</span></div>
+    <div class='tabs'><button class='btn' id='tabLogin'>Sign in</button><button class='ghost' id='tabJoin'>Join</button></div>
+
+    <form id='loginForm' class='box' style='max-width:none'>
+      <input id='lEmail' type='email' placeholder='Email' autocomplete='username' required>
+      <input id='lPass' type='password' placeholder='Password' autocomplete='current-password' required>
+      <button class='btn block' type='submit'>Sign in</button>
+    </form>
+
+    <form id='joinForm' class='box' style='max-width:none' hidden>
+      <input id='rName' placeholder='Full name' autocomplete='name' required>
+      <input id='rPhone' type='tel' placeholder='Cell number' autocomplete='tel' required>
+      <input id='rEmail' type='email' placeholder='Email' autocomplete='email' required>
+      <input id='rPass' type='password' placeholder='Password (8+ characters)' autocomplete='new-password' required>
+      <input id='rWebsite' tabindex='-1' autocomplete='off' style='position:absolute;left:-9999px;width:1px'>
+      <label class='small mute' style='display:flex;gap:8px;align-items:flex-start'><input id='rAge' type='checkbox' style='width:auto;margin-top:3px'> I confirm that I am 18 years or older.</label>
+      <button class='btn pink block' type='submit'>Request membership</button>
+      <div class='small mute'>New members are approved by the club before they can order.</div>
+    </form>
+    <div class='err' id='authMsg'></div>
+  </div>
+</section>
+
+<div id='app' hidden>
+  <header>
+    <div class='brand'>MADA<span>KOP</span></div>
+    <div class='who'><span id='who'></span><span id='pts' class='badge'></span><button class='ghost' id='logout'>Sign out</button></div>
+  </header>
+  <nav id='tabs' hidden><button data-tab='menu' class='on'>Menu</button><button data-tab='orders'>My orders</button></nav>
+  <main>
+    <section id='pending' hidden>
+      <div class='card'>
+        <h2 id='pendTitle'>Membership pending</h2>
+        <p id='pendText' class='mute'></p>
+        <button class='btn' id='recheck'>Check again</button>
+      </div>
+    </section>
+    <section id='menu' hidden>
+      <div id='closed' class='banner' hidden>The club is not taking orders right now. You can still browse the menu.</div>
+      <div id='menuList'></div>
+    </section>
+    <section id='orders' hidden><div id='ordersList'></div></section>
+  </main>
+  <div class='cartbar' id='cartbar' hidden><button class='btn pink' id='openCart'></button></div>
+</div>
+
+<dialog id='cartDlg'><div id='cartBody'></div></dialog>
+<div id='toast' hidden></div>
+
+<script>
+const $ = (s, el) => (el || document).querySelector(s);
+const $$ = (s, el) => Array.from((el || document).querySelectorAll(s));
+const esc = s => String(s == null ? '' : s).split('&').join('&amp;').split('<').join('&lt;').split('>').join('&gt;').split(String.fromCharCode(39)).join('&#39;');
+const money = n => 'R' + Number(n || 0).toLocaleString('en-ZA', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+const when = d => d ? new Date(d).toLocaleString('en-ZA', { dateStyle: 'medium', timeStyle: 'short' }) : '';
+const STATUS = { new: 'Received', confirmed: 'Confirmed', picked: 'Being prepared', out_for_delivery: 'On the way', delivered: 'Delivered', cancelled: 'Cancelled' };
+const badge = s => `<span class='badge s-${esc(s)}'>${esc(STATUS[s] || s)}</span>`;
+
+let S = null;
+try { S = JSON.parse(sessionStorage.getItem('mk_member')); } catch (e) { S = null; }
+let me = null, P = {}, cart = {}, fee = 0, open = true, tab = 'menu';
+
+function toast(msg, bad) {
+  const t = $('#toast'); t.textContent = msg; t.className = bad ? 'bad' : ''; t.hidden = false;
+  clearTimeout(toast.t); toast.t = setTimeout(() => { t.hidden = true; }, 3500);
+}
+function save(j) { S = j; sessionStorage.setItem('mk_member', JSON.stringify(j)); }
+function signOut() { sessionStorage.removeItem('mk_member'); S = null; cart = {}; $('#app').hidden = true; $('#auth').hidden = false; }
+async function refresh() {
+  if (!S || !S.refresh_token) return false;
+  const r = await fetch('/api/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ action: 'refresh', refresh_token: S.refresh_token }) });
+  if (!r.ok) return false;
+  save(await r.json()); return true;
+}
+async function api(path, opts) {
+  opts = opts || {};
+  const go = () => fetch(path, { method: opts.method || 'GET', headers: { 'Content-Type': 'application/json', Authorization: 'Bearer ' + (S ? S.access_token : '') }, body: opts.body ? JSON.stringify(opts.body) : undefined });
+  let r = await go();
+  if (r.status === 401 && await refresh()) r = await go();
+  if (r.status === 401) { signOut(); throw new Error('Session expired, please sign in again'); }
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || 'Request failed');
+  return j;
+}
+const guard = fn => async (...a) => { try { await fn(...a); } catch (e) { toast(e.message, true); } };
+async function post(body) {
+  const r = await fetch('/api/auth', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) });
+  const j = await r.json().catch(() => ({}));
+  if (!r.ok) throw new Error(j.error || 'Something went wrong');
+  return j;
+}
+
+// ---------- sign in / join ----------
+function authTab(join) {
+  $('#loginForm').hidden = join; $('#joinForm').hidden = !join; $('#authMsg').textContent = '';
+  $('#tabLogin').className = join ? 'ghost' : 'btn'; $('#tabJoin').className = join ? 'btn pink' : 'ghost';
+}
+$('#tabLogin').onclick = () => authTab(false);
+$('#tabJoin').onclick = () => authTab(true);
+$('#loginForm').addEventListener('submit', async e => {
+  e.preventDefault(); $('#authMsg').textContent = '';
+  try {
+    const j = await post({ action: 'login', email: $('#lEmail').value, password: $('#lPass').value });
+    save(j); $('#lPass').value = ''; start();
+  } catch (err) { $('#authMsg').textContent = err.message; }
+});
+$('#joinForm').addEventListener('submit', async e => {
+  e.preventDefault(); $('#authMsg').textContent = '';
+  try {
+    const j = await post({ action: 'register', full_name: $('#rName').value, phone: $('#rPhone').value, email: $('#rEmail').value, password: $('#rPass').value, over18: $('#rAge').checked, website: $('#rWebsite').value });
+    if (j.needs_login) { authTab(false); $('#authMsg').textContent = 'Account created. Please sign in.'; return; }
+    save(j); $('#rPass').value = ''; start();
+  } catch (err) { $('#authMsg').textContent = err.message; }
+});
+$('#logout').onclick = signOut;
+
+// ---------- app ----------
+async function start() {
+  $('#auth').hidden = true; $('#app').hidden = false;
+  await guard(boot)();
+}
+async function boot() {
+  me = (await api('/api/orders?resource=me')).profile || {};
+  $('#who').textContent = me.full_name || (S.user && S.user.email) || '';
+  $('#pts').textContent = (me.points || 0) + ' pts';
+  if (me.member_status === 'active') {
+    $('#pending').hidden = true; $('#tabs').hidden = false; show(tab);
+  } else {
+    $('#tabs').hidden = true; $('#menu').hidden = true; $('#orders').hidden = true; $('#cartbar').hidden = true;
+    $('#pending').hidden = false;
+    const sus = me.member_status === 'suspended';
+    $('#pendTitle').textContent = sus ? 'Membership suspended' : 'Membership pending';
+    $('#pendText').textContent = sus ? 'Your membership is currently suspended. Please contact the club.' : 'Thanks for joining. The club will approve your membership shortly. You can order once you are approved.';
+  }
+}
+$('#recheck').onclick = () => guard(boot)();
+
+function show(t) {
+  tab = t;
+  $$('#tabs button').forEach(b => b.classList.toggle('on', b.dataset.tab === t));
+  $('#menu').hidden = t !== 'menu'; $('#orders').hidden = t !== 'orders';
+  if (t === 'menu') guard(loadMenu)(); else { $('#cartbar').hidden = true; guard(loadOrders)(); }
+}
+$('#tabs').addEventListener('click', e => { const b = e.target.closest('button'); if (b) show(b.dataset.tab); });
+
+// ---------- menu + cart ----------
+async function loadMenu() {
+  const j = await api('/api/orders?resource=menu');
+  fee = Number(j.delivery_fee || 0); open = j.club_open !== false;
+  $('#closed').hidden = open;
+  P = {}; (j.products || []).forEach(p => { P[p.id] = p; });
+  Object.keys(cart).forEach(id => { if (!P[id]) delete cart[id]; else if (cart[id] > P[id].stock) cart[id] = P[id].stock; });
+  const groups = {};
+  (j.products || []).forEach(p => { const c = p.category || 'Menu'; (groups[c] = groups[c] || []).push(p); });
+  const html = Object.keys(groups).map(c => `<h3>${esc(c)}</h3>` + groups[c].map(p => `
+    <div class='card prod' data-id='${esc(p.id)}'>
+      <div><b>${esc(p.name)}</b><span class='price'>${money(p.price)}</span>${p.description ? `<div class='small mute'>${esc(p.description)}</div>` : ''}${p.stock <= 5 ? `<div class='small' style='color:var(--warn)'>Only ${esc(p.stock)} left</div>` : ''}</div>
+      <div class='qty'><button data-d='-1'>-</button><span>${cart[p.id] || 0}</span><button data-d='1' ${open ? '' : 'disabled'}>+</button></div>
+    </div>`).join('')).join('');
+  $('#menuList').innerHTML = html || `<div class='card mute'>Nothing on the menu right now. Check back soon.</div>`;
+  updateBar();
+}
+$('#menuList').addEventListener('click', e => {
+  const b = e.target.closest('button[data-d]'); if (!b) return;
+  const id = b.closest('[data-id]').dataset.id, p = P[id]; if (!p) return;
+  const n = Math.max(0, Math.min((cart[id] || 0) + Number(b.dataset.d), p.stock, 20));
+  if (n) cart[id] = n; else delete cart[id];
+  $('span', b.parentNode).textContent = n; updateBar();
+});
+const cartCount = () => Object.keys(cart).reduce((a, id) => a + cart[id], 0);
+const subtotal = () => Object.keys(cart).reduce((a, id) => a + (P[id] ? P[id].price * cart[id] : 0), 0);
+function updateBar() {
+  const n = cartCount();
+  $('#cartbar').hidden = !(n && tab === 'menu');
+  $('#openCart').textContent = 'View cart (' + n + ') - ' + money(subtotal());
+}
+$('#openCart').onclick = () => openCart();
+
+function openCart() {
+  const lines = Object.keys(cart).map(id => `<div class='row'><span>${esc(cart[id])} x ${esc(P[id].name)}</span><span>${money(P[id].price * cart[id])}</span></div>`).join('');
+  const sub = subtotal();
+  $('#cartBody').innerHTML = `
+    <h2>Your order</h2>${lines}
+    <div class='row mute'><span>Delivery</span><span>${money(fee)}</span></div>
+    <div class='row'><b>Total</b><b>${money(sub + fee)}</b></div>
+    <h3>Delivery details</h3>
+    <div style='display:grid;gap:8px'>
+      <input id='cName' placeholder='Full name' value='${esc(me.full_name || '')}'>
+      <input id='cPhone' type='tel' placeholder='Cell number' value='${esc(me.phone || '')}'>
+      <input id='cAddr' placeholder='Street address' value='${esc(me.address_line || '')}'>
+      <div class='grid2'><input id='cCity' placeholder='City / suburb' value='${esc(me.city || '')}'><input id='cZip' placeholder='Postal code' value='${esc(me.zip || '')}'></div>
+      <textarea id='cNote' rows='2' maxlength='500' placeholder='Delivery note (gate code, landmarks...)'></textarea>
+      <select id='cPay'><option value='cod'>Pay on delivery (cash)</option><option value='eft'>EFT (club will send bank details)</option></select>
+    </div>
+    <div class='row' style='margin-top:14px'><button class='ghost' id='cClose'>Back</button><button class='btn pink' id='cPlace' style='flex:1'>Place order</button></div>`;
+  $('#cClose').onclick = () => $('#cartDlg').close();
+  $('#cPlace').onclick = guard(async () => {
+    const btn = $('#cPlace'); btn.disabled = true; btn.textContent = 'Placing...';
+    try {
+      const items = Object.keys(cart).map(id => ({ product_id: id, quantity: cart[id] }));
+      const j = await api('/api/orders', { method: 'POST', body: { items, customer_name: $('#cName').value, customer_phone: $('#cPhone').value, address_line: $('#cAddr').value, city: $('#cCity').value, zip: $('#cZip').value, note: $('#cNote').value, payment_method: $('#cPay').value } });
+      cart = {};
+      $('#cartBody').innerHTML = `<h2>Order placed</h2><p>Your order number is <b>${esc(j.order.order_number)}</b>.</p><p class='mute'>Total ${money(j.order.total)}. The club will confirm it shortly. You can follow it under My orders.</p><button class='btn block' id='cDone'>Done</button>`;
+      $('#cDone').onclick = () => { $('#cartDlg').close(); loadMenu().catch(() => {}); };
+    } catch (err) {
+      btn.disabled = false; btn.textContent = 'Place order'; throw err;
+    }
+  });
+  $('#cartDlg').showModal();
+}
+
+// ---------- my orders ----------
+async function loadOrders() {
+  const j = await api('/api/orders');
+  $('#ordersList').innerHTML = (j.orders || []).map(o => `
+    <div class='card'>
+      <div class='row'><b>${esc(o.order_number)}</b>${badge(o.status)}</div>
+      <div class='small mute'>${esc(when(o.created_at))}</div>
+      ${(o.items || []).map(i => `<div class='row small'><span>${esc(i.quantity)} x ${esc(i.product_name)}</span><span>${money(i.line_total)}</span></div>`).join('')}
+      <div class='row'><span class='mute'>Total (${esc(String(o.payment_method).toUpperCase())})</span><b>${money(o.total)}</b></div>
+      ${o.status === 'new' ? `<button class='ghost' data-cancel='${esc(o.id)}'>Cancel order</button>` : ''}
+    </div>`).join('') || `<div class='card mute'>No orders yet.</div>`;
+}
+$('#ordersList').addEventListener('click', guard(async e => {
+  const b = e.target.closest('button[data-cancel]'); if (!b) return;
+  if (!confirm('Cancel this order?')) return;
+  await api('/api/orders', { method: 'PATCH', body: { order_id: b.dataset.cancel } });
+  toast('Order cancelled'); loadOrders();
+}));
+
+if (S && S.access_token) start();
+</script>
+</body>
+</html>

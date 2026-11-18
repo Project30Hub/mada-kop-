@@ -1,11 +1,16 @@
 // GET  /api/auth  -> safe configuration check (no secrets): which Supabase host and which keys are set
-// POST /api/auth  { action: 'login', email, password }  |  { action: 'refresh', refresh_token }
-// Returns the Supabase session + the user's role so the front end can route members, drivers and staff.
-const { anonClient, userClient, envOk, configStatus, send } = require('./_lib/supabase');
+// POST /api/auth  { action: 'login', email, password }
+//                 { action: 'register', full_name, phone, email, password, over18: true }
+//                 { action: 'refresh', refresh_token }
+// Returns the Supabase session + the user's role/membership so the front end can route members, drivers and staff.
+const { anonClient, serviceClient, userClient, envOk, configStatus, send, str } = require('./_lib/supabase');
+
+const EMAIL = /^[^ @]+@[^ @]+[.][^ @]+$/;
+const PHONE = /^[+0-9 ()-]{7,20}$/;
 
 async function sessionPayload(session) {
   const { data: profile } = await userClient(session.access_token)
-    .from('profiles').select('role, member_status, full_name')
+    .from('profiles').select('role, member_status, full_name, phone')
     .eq('id', session.user.id).maybeSingle();
   return {
     access_token: session.access_token,
@@ -33,6 +38,36 @@ module.exports = async (req, res) => {
       if (error || !data || !data.session) return send(res, 401, { error: 'Invalid email or password' });
       return send(res, 200, await sessionPayload(data.session));
     }
+
+    if (body.action === 'register') {
+      if (!envOk(res, true)) return;
+      if (body.website) return send(res, 200, { ok: true }); // honeypot field: real people leave it empty
+      const email = str(body.email, 254).toLowerCase();
+      const password = String(body.password || '');
+      const fullName = str(body.full_name, 120);
+      const phone = str(body.phone, 30);
+      if (fullName.length < 2) return send(res, 400, { error: 'Please enter your full name' });
+      if (!EMAIL.test(email)) return send(res, 400, { error: 'Enter a valid email address' });
+      if (!PHONE.test(phone)) return send(res, 400, { error: 'Enter a valid phone number' });
+      if (password.length < 8 || password.length > 100) return send(res, 400, { error: 'Password must be at least 8 characters' });
+      if (body.over18 !== true) return send(res, 400, { error: 'You must be 18 or older to join' });
+
+      // Accounts start as role=member, status=pending. Nobody can order until staff approve them.
+      const created = await serviceClient().auth.admin.createUser({
+        email, password, email_confirm: true,
+        user_metadata: { full_name: fullName, phone, over18: true }
+      });
+      if (created.error) {
+        const m = String(created.error.message || '').toLowerCase();
+        if (m.includes('already')) return send(res, 409, { error: 'An account with this email already exists. Try signing in.' });
+        console.error('register error:', created.error.message);
+        return send(res, 400, { error: 'Could not create the account' });
+      }
+      const { data, error } = await anonClient().auth.signInWithPassword({ email, password });
+      if (error || !data || !data.session) return send(res, 201, { ok: true, needs_login: true });
+      return send(res, 201, await sessionPayload(data.session));
+    }
+
     if (body.action === 'refresh') {
       const token = String(body.refresh_token || '');
       if (!token) return send(res, 400, { error: 'Missing refresh token' });
